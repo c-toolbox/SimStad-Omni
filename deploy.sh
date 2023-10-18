@@ -1,5 +1,5 @@
 cd /home/mange61/omni/
-source .venv/vin/activate
+source .venv/bin/activate
 
 git pull
 
