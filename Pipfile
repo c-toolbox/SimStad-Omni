@@ -9,6 +9,7 @@ daphne = "*"
 channels = "*"
 djangorestframework = "*"
 django-cors-headers = "*"
+channels-redis = "*"
 
 [dev-packages]
 

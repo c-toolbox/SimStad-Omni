@@ -50,9 +50,13 @@ ASGI_APPLICATION = "omni.asgi.application"
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-        # TODO: CHANGE TO REDIS
-    }
+        # "BACKEND": "channels.layers.InMemoryChannelLayer",
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+            "group_expiry": 12 * 3600,
+        },
+    },
 }
 
 MIDDLEWARE = [

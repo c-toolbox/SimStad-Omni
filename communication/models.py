@@ -2,9 +2,14 @@ import random, re, uuid
 from django.db import models
 
 
-# Generate new token - "xxxx-xxxx-xxxx-xxxx"
-def generate_token():
-    return str(uuid.uuid4())
+def generate_code():
+    chars = list("BCDFGHJKLMNPQRSTVWXZ")
+    size = 4
+    while True:
+        random.shuffle(chars)
+        code = "".join(chars[:size])
+        if not Service.objects.filter(public_code=code).exists():
+            return code
 
 
 def safe_string(text):
@@ -41,10 +46,26 @@ class Service(models.Model):
         help_text="Token used to access this service as a client. Use this in the user interface display, if any",
     )
 
-    allow_public_visitors = models.BooleanField(
+    allow_public_code = models.BooleanField(
         default=False,
         help_text="If enabled, the service will be accessible through a public code or link. A new code will be generated everytime the host connects.",
     )
+
+    # # Unique code for visitors to join via
+    public_code = models.CharField(
+        max_length=8,
+        null=True,
+        default=None,
+    )
+
+    def generate_code(self):
+        self.public_code = generate_code()
+        self.save()
+        return self.public_code
+
+    def clear_code(self):
+        self.public_code = None
+        self.save()
 
     def __str__(self):
         return self.title
@@ -55,7 +76,7 @@ class Service(models.Model):
 
     @property
     def host_group(self):
-        return "server_" + safe_string(self.title)
+        return "host_" + safe_string(self.title)
 
     @property
     def client_group(self):
@@ -66,5 +87,5 @@ class Visitor(models.Model):
     # Creation date
     created_on = models.DateTimeField(auto_now_add=True)
 
-    # Unique code for each session
+    # Service that was visited
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
