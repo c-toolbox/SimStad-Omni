@@ -14,7 +14,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 import communication.routing
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "omni.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "omni.settings.prod")
 
 # application = get_asgi_application()
 application = ProtocolTypeRouter(

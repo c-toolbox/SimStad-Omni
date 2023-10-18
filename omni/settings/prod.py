@@ -3,23 +3,23 @@
 import os
 from .dev import *
 
-Debug = False
+# Debug = False
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # Set Domain here
 ALLOWED_HOSTS = ["omni.itn.liu.se"]
-CSRF_TRUSTED_ORIGINS = ["omni.itn.liu.se"]
+CSRF_TRUSTED_ORIGINS = ["https://omni.itn.liu.se"]
 
 # Database
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "name",
-        "USER": "user",
+        "NAME": "omni",
+        "USER": "admin",
         "PASSWORD": "password",
         "HOST": "localhost",
-        "PORT": "1234",
+        "PORT": "5432",
     }
 }
 
