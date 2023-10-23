@@ -64,6 +64,15 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
 
     async def receive_json(self, content):
         print(f"> {self} {content}")
+
+        # Check if message is not in JSON format
+        if not isinstance(content, dict):
+            await self.send_json(
+                {"type": "server_error", "message": "Malformed message. Expected JSON."}
+            )
+            return await self.close()
+
+        # If new user, check token first and authenticate them
         if not self.authorized:
             return await self.authenticate(content)
 
