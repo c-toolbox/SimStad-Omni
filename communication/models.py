@@ -13,7 +13,7 @@ def generate_code():
 
 
 def safe_string(text):
-    return re.sub(r"[^\w\d-]", "_", text).lower()
+    return re.sub(r"[^A-Za-z\d-]", "_", text).lower()
 
 
 class Service(models.Model):
