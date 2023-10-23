@@ -12,6 +12,7 @@ django-cors-headers = "*"
 channels-redis = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
+whitenoise = "*"
 
 [dev-packages]
 
