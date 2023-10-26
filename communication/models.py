@@ -3,7 +3,7 @@ from django.db import models
 
 
 def generate_code():
-    chars = list("BCDFGHJKLMNPQRSTVWXZ")
+    chars = list("ABCDEFGHIJKLMNOPQRSTUVXYZ")
     size = 4
     while True:
         random.shuffle(chars)

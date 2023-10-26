@@ -1,0 +1,63 @@
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    font-family: 'Manrope', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #ffedd5;
+    background-color: #d97706;
+    color: white;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+main {
+    margin: auto;
+    display: grid;
+    gap: 32px;
+    text-align: center;
+}
+
+.banner {
+    display: flex;
+    gap: 8px;
+    font-size: 64px;
+}
+
+.title {
+    margin: 0;
+    font-size: 1em;
+    line-height: 1em;
+    font-weight: 200;
+}
+
+img {
+    height: 1em;
+    padding: 8px 0;
+}
+
+.login {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 500;
+    background-color: white;
+    padding: 4px;
+    border-radius: 1000px;
+    user-select: none;
+    transition: all 50ms ease;
+}
+.login:hover {
+    transform: scale(1.05);
+}
+.login:active {
+    transform: scale(0.95);
+}
+
+a {
+    color: #b45309;
+    text-decoration: none;
+}
