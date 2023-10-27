@@ -10,23 +10,28 @@ from .models import Service, Visitor
 
 
 def index(request):
-    return render(request, "communication/index.html")
-
-
-@api_view(["GET"])
-def get_example(request):
-    return Response(
-        {
-            "message": "Hello world!",
-        }
+    print('index', request.user.is_authenticated)
+    return render(
+        request,
+        "communication/index.html",
+        {"is_authenticated": request.user.is_authenticated},
     )
 
 
-@api_view(["POST"])
-def post_example(request):
-    return Response(
-        {
-            "message": "I got your data",
-            "data": request.data,
-        }
-    )
+# @api_view(["GET"])
+# def get_example(request):
+#     return Response(
+#         {
+#             "message": "Hello world!",
+#         }
+#     )
+
+
+# @api_view(["POST"])
+# def post_example(request):
+#     return Response(
+#         {
+#             "message": "I got your data",
+#             "data": request.data,
+#         }
+#     )

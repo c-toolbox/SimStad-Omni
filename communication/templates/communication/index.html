@@ -16,7 +16,7 @@
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
-			href="https://fonts.googleapis.com/css2?family=Manrope:wght@100;200;300;400;500;600;700;800;900&display=swap"
+			href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400&display=swap"
 			rel="stylesheet"
 		/>
 
@@ -25,11 +25,29 @@
 	</head>
 	<body>
 		<main>
-			<div class="banner">
-				<img src="{% static 'icon.png' %}" />
-				<h1 class="title">OMNI</h1>
+			<div>
+				<div class="banner">
+					<img src="{% static 'icon.png' %}" />
+					<h1 class="title">OMNI</h1>
+				</div>
+				<hr />
 			</div>
-			<a href="/admin" class="login">Login</a>
+
+			<a href="https://www.itn.liu.se/~mange61/omni/guest/">
+				<div class="button">Guest</div>
+			</a>
+
+			{% if user.is_authenticated %}
+			<a href="https://www.itn.liu.se/~mange61/omni/admin/">
+				<div class="button">Interface</div>
+			</a>
+			{% endif %}
+
+			<a href="/admin"
+				><div class="text-button">
+					{% if user.is_authenticated %} Admin {% else %} Login {% endif %}
+				</div></a
+			>
 		</main>
 	</body>
 </html>

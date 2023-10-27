@@ -4,7 +4,7 @@
 
 html,
 body {
-    font-family: 'Manrope', sans-serif;
+    font-family: 'Montserrat', sans-serif;
     margin: 0;
     padding: 0;
     background-color: #ffedd5;
@@ -18,8 +18,19 @@ body {
 main {
     margin: auto;
     display: grid;
-    gap: 32px;
+    gap: 24px;
     text-align: center;
+}
+
+hr {
+    width: 100%;
+    border: none;
+    border-top: 2px solid white;
+    margin-bottom: 16px;
+}
+
+a {
+    text-decoration: none;
 }
 
 .banner {
@@ -40,24 +51,39 @@ img {
     padding: 8px 0;
 }
 
-.login {
+.button {
     margin: 0;
     font-size: 24px;
-    font-weight: 500;
+    font-weight: 400;
     background-color: white;
-    padding: 4px;
+    padding: 8px;
     border-radius: 1000px;
     user-select: none;
-    transition: all 50ms ease;
-}
-.login:hover {
-    transform: scale(1.05);
-}
-.login:active {
-    transform: scale(0.95);
+    color: #b45309;
 }
 
-a {
-    color: #b45309;
-    text-decoration: none;
+.button:hover {
+    opacity: 0.8;
+}
+
+.button:active {
+    opacity: 0.7;
+}
+
+.text-button {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 400;
+    padding: 8px;
+    border-radius: 1000px;
+    user-select: none;
+    color: white;
+}
+
+.text-button:hover {
+    opacity: 0.8;
+}
+
+.text-button:active {
+    opacity: 0.7;
 }
