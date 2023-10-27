@@ -63,10 +63,11 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
         await super().disconnect(code)
 
     async def receive_json(self, content):
-        print(f"> {self} {content}")
+        # print(f"> {self} {content}")
 
         # Check if message is not in JSON format
         if not isinstance(content, dict):
+            print(f"> {self} {content}")
             await self.send_json(
                 {"type": "server_error", "message": "Malformed message. Expected JSON."}
             )
@@ -74,6 +75,7 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
 
         # If new user, check token first and authenticate them
         if not self.authorized:
+            print(f"> {self} {content}")
             return await self.authenticate(content)
 
         # Add additional data about the sender
@@ -86,7 +88,7 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
         )
 
     async def send_json(self, content, close=False):
-        print(f"< {self} {content}")
+        # print(f"< {self} {content}")
         await super().send_json(content, close)
 
     # Authentication check for the user's first message

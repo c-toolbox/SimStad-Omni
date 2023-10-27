@@ -10,7 +10,6 @@ from .models import Service, Visitor
 
 
 def index(request):
-    print('index', request.user.is_authenticated)
     return render(
         request,
         "communication/index.html",
