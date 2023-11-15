@@ -46,16 +46,18 @@ class Service(models.Model):
         help_text="Token used to access this service as a client. Use this in the user interface display, if any",
     )
 
+    # Boolean for public code generation
     allow_public_code = models.BooleanField(
         default=False,
-        help_text="If enabled, the service will be accessible through a public code or link. A new code will be generated everytime the host connects.",
+        help_text="If enabled, the service will be accessible through a public code or link. A new code is generated everytime the host connects.",
     )
 
-    # # Unique code for visitors to join via
+    # Unique code for visitors to join via
     public_code = models.CharField(
         max_length=8,
         null=True,
         default=None,
+        help_text="The public code for guests to connect via. A new code is generated everytime the host connects.",
     )
 
     def generate_code(self):

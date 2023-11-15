@@ -11,9 +11,9 @@ class ServiceAdmin(admin.ModelAdmin):
     ]
     fields = [
         "title",
-        "allow_public_code",
         "host_token",
         "client_token",
+        "allow_public_code",
         "public_code",
     ]
     readonly_fields = [
