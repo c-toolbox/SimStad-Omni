@@ -19,6 +19,7 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
     host_token = None
     host_group = None
     client_group = None
+    guest_group = None
 
     def __init__(self, *args, **kwargs):
         super(OmniConsumer, self).__init__(*args, **kwargs)
@@ -43,7 +44,7 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
 
             # Annouce departure to clients
             await self.channel_layer.group_send(
-                self.client_group,
+                self.guest_group,
                 {"type": "on_kick", "message": "Session ended by host"},
             )
 
@@ -52,6 +53,9 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
 
         if self.client_group:
             await self.channel_layer.group_discard(self.client_group, self.channel_name)
+
+        if self.guest_group:
+            await self.channel_layer.group_discard(self.guest_group, self.channel_name)
 
         # Announce that channel left
         if self.authorized:
@@ -116,6 +120,9 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
         # Subscribe to group
         await self.channel_layer.group_add(self.my_group, self.channel_name)
         print(f"+ {self} Subscribed to '{self.my_group}'")
+        if self.is_guest:
+            await self.channel_layer.group_add(self.guest_group, self.channel_name)
+            print(f"+ {self} Subscribed to '{self.guest_group}'")
 
         # Successful authentication response
         message = f"Authorized as {self.title}"
@@ -142,6 +149,7 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
             self.host_token = service.host_token
             self.host_group = service.host_group
             self.client_group = service.client_group
+            self.guest_group = service.guest_group
 
             if self.is_host:
                 self.allow_public_code = service.allow_public_code

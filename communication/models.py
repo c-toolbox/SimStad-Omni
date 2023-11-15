@@ -82,6 +82,10 @@ class Service(models.Model):
     def client_group(self):
         return "client_" + safe_string(self.title)
 
+    @property
+    def guest_group(self):
+        return "guest_" + safe_string(self.title)
+
 
 class Visitor(models.Model):
     # Creation date
