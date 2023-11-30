@@ -82,4 +82,6 @@ $ python manage.py runserver
 
 Visit http://localhost:8000/admin/. Log in as superuser. Create a new service to generate a host-token and client-token.
 
+Either install [https://redis.io/docs/install/install-redis/](Redis) locally or edit [https://gitlab.liu.se/C/General/remote-interaction/omni/-/blob/main/omni/settings/dev.py?ref_type=heads#L43](/omni/settings/dev.py) to use InMemoryChannelLayer instead.
+
 Connect your WebSocket to [ws://localhost:8000/ws/](). Your first message must be `{"token": <TOKEN>}`.
