@@ -52,6 +52,12 @@ class Service(models.Model):
         help_text="If enabled, the service will be accessible through a public code or link. A new code is generated everytime the host connects.",
     )
 
+    # Boolean for multiple hosts
+    allow_multiple_hosts = models.BooleanField(
+        default=False,
+        help_text="If enabled, the service allows multiple hosts to be connected at the same time. Otherwise, a new host kicks the older ones.",
+    )
+
     # Unique code for visitors to join via
     public_code = models.CharField(
         max_length=8,

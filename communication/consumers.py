@@ -16,6 +16,7 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
     is_host = False
     is_guest = False
     allow_public_code = False
+    allow_multiple_hosts = False
     host_token = None
     host_group = None
     client_group = None
@@ -111,7 +112,7 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
             return await self.close()
 
         # Force existing host to leave
-        if self.is_host:
+        if self.is_host and not self.allow_multiple_hosts:
             await self.channel_layer.group_send(
                 self.my_group,
                 {"type": "on_kick", "message": "Kicked by new host"},
@@ -153,6 +154,7 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
 
             if self.is_host:
                 self.allow_public_code = service.allow_public_code
+                self.allow_multiple_hosts = service.allow_multiple_hosts
             return True
         return False
 

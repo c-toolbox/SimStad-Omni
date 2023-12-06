@@ -7,6 +7,7 @@ class ServiceAdmin(admin.ModelAdmin):
         "title",
         "visitor_count",
         "allow_public_code",
+        "allow_multiple_hosts",
         "created_on",
     ]
     fields = [
@@ -14,6 +15,7 @@ class ServiceAdmin(admin.ModelAdmin):
         "host_token",
         "client_token",
         "allow_public_code",
+        "allow_multiple_hosts",
         "public_code",
     ]
     readonly_fields = [
