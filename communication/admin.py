@@ -1,11 +1,15 @@
-from django.contrib import admin
-from .models import Service, Visitor
+import os, zipfile
+from django import forms
+from django.contrib import admin, messages
+from django.core.files.base import ContentFile
+from django.utils.html import format_html
+from .models import Service, Installation, Raster
 
 
+@admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
     list_display = [
         "title",
-        "visitor_count",
         "allow_public_code",
         "allow_multiple_hosts",
         "created_on",
@@ -26,19 +30,46 @@ class ServiceAdmin(admin.ModelAdmin):
     ]
 
 
-class VisitorAdmin(admin.ModelAdmin):
+@admin.register(Installation)
+class InstallationAdmin(admin.ModelAdmin):
     list_display = [
-        "created_on",
+        "name",
+        "create_time",
         "service",
     ]
     fields = [
-        "created_on",
+        "name",
         "service",
     ]
+
+
+@admin.register(Raster)
+class RasterAdmin(admin.ModelAdmin):
+    actions = ["bulk_upload"]
+    list_display = [
+        "id",
+        "name",
+        "group",
+        "create_time",
+        "change_time",
+        "image",
+        "thumbnail_image",
+    ]
+    fields = [
+        "id",
+        "name",
+        "group",
+        "image",
+        "thumbnail_image",
+    ]
     readonly_fields = [
-        "created_on",
+        "thumbnail_image",
     ]
 
-
-admin.site.register(Service, ServiceAdmin)
-admin.site.register(Visitor, VisitorAdmin)
+    def thumbnail_image(self, obj: Raster):
+        if obj.thumbnail:
+            return format_html(
+                '<img src="{}" width="100" height="100" />',
+                obj.thumbnail.url,
+            )
+        return ""

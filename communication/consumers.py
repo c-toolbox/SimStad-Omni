@@ -6,7 +6,7 @@ from channels.db import database_sync_to_async
 from channels_redis.core import RedisChannelLayer
 from .utils import is_uuid, explain_websocket_code
 
-from .models import Service, Visitor
+from .models import Service
 
 
 class OmniConsumer(AsyncJsonWebsocketConsumer):

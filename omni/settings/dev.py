@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "whitenoise.runserver_nostatic",
     "communication",
+    "django_cleanup.apps.CleanupConfig",
 ]
 
 ASGI_APPLICATION = "omni.asgi.application"
@@ -141,3 +142,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Handle css
 mimetypes.add_type("text/css", ".css", True)
+
+
+# Media files
+
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"

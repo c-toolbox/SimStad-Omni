@@ -1,5 +1,8 @@
-import random, re, uuid
+import random, re, uuid, os
+from io import BytesIO
 from django.db import models
+from django.core.files.base import ContentFile
+from .utils import generate_thumbnail
 
 
 def generate_code():
@@ -79,10 +82,6 @@ class Service(models.Model):
         return self.title
 
     @property
-    def visitor_count(self):
-        return self.visitor_set.count()
-
-    @property
     def host_group(self):
         return "host_" + safe_string(self.title)
 
@@ -95,9 +94,108 @@ class Service(models.Model):
         return "guest_" + safe_string(self.title)
 
 
-class Visitor(models.Model):
-    # Creation date
-    created_on = models.DateTimeField(auto_now_add=True)
+class Installation(models.Model):
+    id = models.CharField(
+        max_length=32,
+        unique=True,
+        primary_key=True,
+        help_text="Unique identifier for the installation",
+    )
 
-    # Service that was visited
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    name = models.CharField(
+        max_length=32,
+        help_text="Name of the installation",
+    )
+
+    create_time = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Timestamp when the installation was created",
+    )
+
+    service = models.ForeignKey(
+        Service,
+        on_delete=models.SET_NULL,
+        null=True,
+        help_text="Service associated with the installation",
+    )
+
+
+class Raster(models.Model):
+    id = models.CharField(
+        max_length=32,
+        unique=True,
+        primary_key=True,
+        help_text="Unique identifier for the raster",
+    )
+
+    name = models.CharField(
+        max_length=32,
+        help_text="Name of the raster",
+    )
+
+    installation = models.ForeignKey(
+        Installation,
+        on_delete=models.SET_NULL,
+        null=True,
+        help_text="The installation the raster belongs to",
+    )
+
+    group = models.CharField(
+        max_length=255,
+        help_text="Group to which the raster belongs",
+    )
+
+    create_time = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Timestamp when the raster was created",
+    )
+
+    change_time = models.DateTimeField(
+        auto_now=True,
+        help_text="Timestamp when the raster was last modified",
+    )
+
+    image = models.ImageField(
+        upload_to="rasters/", help_text="Image file for the raster"
+    )
+
+    minimap = models.ImageField(
+        upload_to="minimaps/",
+        null=True,
+        blank=True,
+        help_text="Minimap image for the raster",
+    )
+
+    thumbnail = models.ImageField(
+        upload_to="thumbnails/",
+        null=True,
+        blank=True,
+        help_text="Thumbnail image for the raster",
+    )
+
+    def save(self, *args, **kwargs):
+        # Save the model first to ensure `self.image` has a path
+        super().save(*args, **kwargs)
+
+        if self.image:
+            # Generate the thumbnail
+            thumbnail = generate_thumbnail(self.image.path)
+
+            # Ensure the thumbnails directory exists
+            thumbnail_dir = os.path.join(
+                os.path.dirname(self.image.path), "..", "thumbnails"
+            )
+            os.makedirs(thumbnail_dir, exist_ok=True)
+
+            # Define the thumbnail path
+            base_name = os.path.basename(self.image.name)
+            thumbnail_path = os.path.join(thumbnail_dir, base_name)
+
+            thumbnail.save(thumbnail_path, format="PNG")
+
+            # Update the model's thumbnail field
+            self.thumbnail.name = os.path.join("thumbnails", base_name)
+            super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name

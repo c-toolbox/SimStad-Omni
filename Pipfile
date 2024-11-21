@@ -13,6 +13,8 @@ channels-redis = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
 whitenoise = "*"
+pillow = "*"
+django-cleanup = "*"
 
 [dev-packages]
 
