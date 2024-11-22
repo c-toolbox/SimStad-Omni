@@ -61,9 +61,6 @@ def generate_thumbnail(image_path):
 def generate_minimap(image_path):
     image = Image.open(image_path)
 
-    # Setting the points for cropped image
-    width, height = image.size
-
     # Cropped image of above dimension
     new_width = 730
     new_height = int(730 * (3849 / 5120))

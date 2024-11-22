@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",
     "communication",
     "django_cleanup.apps.CleanupConfig",
+    "adminsortable",
 ]
 
 ASGI_APPLICATION = "omni.asgi.application"
