@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "communication",
     "django_cleanup.apps.CleanupConfig",
     "adminsortable",
+    "colorfield",
 ]
 
 ASGI_APPLICATION = "omni.asgi.application"

@@ -3,7 +3,7 @@ from django.utils.html import format_html
 from django.shortcuts import render, redirect
 from django.urls import path, reverse
 from django.utils import timezone
-from adminsortable.admin import NonSortableParentAdmin, SortableStackedInline
+from adminsortable.admin import NonSortableParentAdmin, SortableTabularInline
 from .models import (
     Service,
     City,
@@ -13,8 +13,27 @@ from .models import (
     ScenarioRaster,
     Raster,
     Tag,
+    Legend,
+    LegendEntry,
 )
 from .forms import BulkUploadForm
+
+
+### Sort models
+
+
+# Return the installed apps in the order the user has registred them
+def get_app_list(self, request, app_label=None):
+    app_dict = self._build_app_dict(request, app_label)
+    app_list = app_dict.values()
+
+    return app_list
+
+
+admin.AdminSite.get_app_list = get_app_list
+
+
+### Register models
 
 
 @admin.register(Service)
@@ -23,7 +42,8 @@ class ServiceAdmin(admin.ModelAdmin):
         "title",
         "allow_public_code",
         "allow_multiple_hosts",
-        "created_on",
+        "created_at",
+        "changed_at",
     ]
     fields = [
         "title",
@@ -34,7 +54,6 @@ class ServiceAdmin(admin.ModelAdmin):
         "public_code",
     ]
     readonly_fields = [
-        "created_on",
         "host_token",
         "client_token",
         "public_code",
@@ -50,7 +69,8 @@ class CityAdmin(admin.ModelAdmin):
         "collection_count",
         "scenario_count",
         "raster_count",
-        "create_time",
+        "created_at",
+        "changed_at",
     ]
     fields = [
         "name",
@@ -71,7 +91,7 @@ class CityAdmin(admin.ModelAdmin):
         return obj.raster_set.count()
 
 
-class CollectionScenarioInline(SortableStackedInline):
+class CollectionScenarioInline(SortableTabularInline):
     verbose_name = "Scenario"
     verbose_name_plural = "Scenarios"
     model = CollectionScenario
@@ -90,7 +110,8 @@ class CollectionAdmin(NonSortableParentAdmin):
         "blocks_video",
         "scenario_count",
         "image_preview",
-        "create_time",
+        "created_at",
+        "changed_at",
     ]
     fields = [
         "name",
@@ -98,23 +119,19 @@ class CollectionAdmin(NonSortableParentAdmin):
         "city",
         "blocks_video",
         "image",
-        "create_time",
-    ]
-    readonly_fields = [
-        "create_time",
     ]
 
     def image_preview(self, obj: Collection):
         if obj.image:
             return format_html('<img src="{}" width="100" />', obj.image.url)
         return ""
-    
+
     @admin.display(description="Scenarios")
     def scenario_count(self, obj: Collection):
         return obj.scenarios.count()
 
 
-class ScenarioRasterInline(SortableStackedInline):
+class ScenarioRasterInline(SortableTabularInline):
     verbose_name = "Raster"
     verbose_name_plural = "Rasters"
     model = ScenarioRaster
@@ -131,21 +148,31 @@ class ScenarioAdmin(NonSortableParentAdmin):
         "key",
         "city",
         "collection",
-        "legend_title",
-        "create_time",
+        "legend_type",
+        "created_at",
+        "changed_at",
     ]
     fields = [
         "name",
         "key",
         "description",
         "city",
-        "legend_title",
-        "legend_colors",
+        "legend",
+        "legend_image",
     ]
 
     @admin.display(description="Collection")
     def collection(self, obj: Scenario):
         return obj.collections.first()
+
+    @admin.display(description="Legend")
+    def legend_type(self, obj: Scenario):
+        if obj.legend:
+            return obj.legend
+        elif obj.legend_image:
+            return obj.legend_image
+        else:
+            return "uh oh"
 
 
 @admin.register(Raster)
@@ -159,8 +186,8 @@ class RasterAdmin(admin.ModelAdmin):
         "scenario",
         "tag_list",
         "image_preview",
-        "create_time",
-        "change_time",
+        "created_at",
+        "changed_at",
     ]
     fields = [
         "name",
@@ -186,12 +213,12 @@ class RasterAdmin(admin.ModelAdmin):
     def tag_list(self, obj: Raster):
         return ", ".join([tag.name for tag in obj.tags.all()])
 
-    @admin.display(description="Image preview")
+    @admin.display(description="Image")
     def image_preview(self, obj: Raster):
-        if obj.image and obj.minimap:
+        if obj.image and obj.thumbnail:
             return format_html(
                 '<img src="{}" height="64" />',
-                obj.minimap.url,
+                obj.thumbnail.url,
             )
         return ""
 
@@ -221,8 +248,8 @@ class RasterAdmin(admin.ModelAdmin):
                         name=name,
                         city=city,
                         image=image,
-                        create_time=timezone.now(),
-                        change_time=timezone.now(),
+                        created_at=timezone.now(),
+                        changed_at=timezone.now(),
                     )
                     raster.save()
                     raster.tags.set(tags)
@@ -245,17 +272,46 @@ class RasterAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ["name"]
+    list_display = [
+        "name",
+        "raster_count",
+        "created_at",
+        "changed_at",
+    ]
     fields = ["name"]
 
-
-# Return the installed apps in the order the user has registred them
-def get_app_list(self, request, app_label=None):
-    app_dict = self._build_app_dict(request, app_label)
-    app_list = app_dict.values()
-
-    return app_list
+    @admin.display(description="Rasters")
+    def raster_count(self, obj: Tag):
+        return Raster.objects.filter(tags=obj).count()
 
 
-admin.AdminSite.get_app_list = get_app_list
+class LegendEntryInline(SortableTabularInline):
+    model = LegendEntry
+    extra = 0
+    fields = ["text", "color", "type"]
 
+
+@admin.register(Legend)
+class LegendAdmin(NonSortableParentAdmin):
+    inlines = [LegendEntryInline]
+    list_display = [
+        "title",
+        "scenarios",
+        "colors",
+        "created_at",
+        "changed_at",
+    ]
+    fields = [
+        "title",
+    ]
+
+    @admin.display(description="Scenarios")
+    def scenarios(self, obj: Legend):
+        return ", ".join([scenario.name for scenario in obj.scenario_set.all()])
+
+    @admin.display(description="Colors")
+    def colors(self, obj: Legend):
+        html = ""
+        for entry in obj.entries.all():
+            html += f'<div style="display:inline-block;width:16px;height:16px;margin:1px;background-color:{entry.color};"></div>'
+        return format_html(html)

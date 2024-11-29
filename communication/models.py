@@ -1,6 +1,7 @@
 import random, re, uuid, os
 from django.db import models
 from adminsortable.models import SortableMixin
+from colorfield.fields import ColorField
 from .utils import generate_minimap, generate_thumbnail
 
 
@@ -20,7 +21,8 @@ def safe_string(text):
 
 class Service(models.Model):
     # Creation date
-    created_on = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    changed_at = models.DateTimeField(auto_now=True)
 
     # Title describing the service
     title = models.CharField(
@@ -99,6 +101,9 @@ class City(models.Model):
         verbose_name = "City exhibit"
         verbose_name_plural = "City exhibits"
 
+    created_at = models.DateTimeField(auto_now_add=True)
+    changed_at = models.DateTimeField(auto_now=True)
+
     key = models.CharField(
         max_length=32,
         unique=True,
@@ -117,17 +122,15 @@ class City(models.Model):
         help_text="WebSocket service the city exhibit uses",
     )
 
-    create_time = models.DateTimeField(
-        auto_now_add=True,
-        help_text="Timestamp when the city was created",
-    )
-
     def __str__(self):
         return self.name
 
 
 # A collection of scenarios that follow a theme
 class Collection(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    changed_at = models.DateTimeField(auto_now=True)
+
     key = models.CharField(
         max_length=32,
         unique=True,
@@ -161,11 +164,6 @@ class Collection(models.Model):
         related_name="collections",
     )
 
-    create_time = models.DateTimeField(
-        auto_now_add=True,
-        help_text="Timestamp when the collection was created",
-    )
-
     def __str__(self):
         return self.name
 
@@ -185,6 +183,9 @@ class CollectionScenario(SortableMixin):
 
 
 class Scenario(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    changed_at = models.DateTimeField(auto_now=True)
+
     key = models.CharField(
         max_length=32,
         unique=True,
@@ -228,18 +229,19 @@ class Scenario(models.Model):
     #     default=YearInSchool.FRESHMAN,
     # )
 
-    legend_title = models.CharField(
-        max_length=64,
-        help_text="Title for the legend",
+    legend = models.ForeignKey(
+        "Legend",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Legend associated with the scenario. Provide either a legend or a legend image, not both.",
     )
 
-    legend_colors = models.JSONField(
-        help_text="List of color definitions for the legend, each including color, text, and type",
-    )
-
-    create_time = models.DateTimeField(
-        auto_now_add=True,
-        help_text="Timestamp when the scenario was created",
+    legend_image = models.ImageField(
+        upload_to="legends/",
+        null=True,
+        blank=True,
+        help_text="Image file for the legend. Provide either a legend or a legend image, not both.",
     )
 
     def __str__(self):
@@ -261,6 +263,9 @@ class ScenarioRaster(SortableMixin):
 
 
 class Raster(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    changed_at = models.DateTimeField(auto_now=True)
+
     key = models.CharField(
         max_length=32,
         unique=True,
@@ -288,8 +293,6 @@ class Raster(models.Model):
     image = models.ImageField(upload_to="rasters/")
     minimap = models.ImageField(upload_to="minimaps/", null=True, blank=True)
     thumbnail = models.ImageField(upload_to="thumbnails/", null=True, blank=True)
-    create_time = models.DateTimeField(auto_now_add=True)
-    change_time = models.DateTimeField(auto_now=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -341,6 +344,9 @@ class Raster(models.Model):
 
 
 class Tag(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    changed_at = models.DateTimeField(auto_now=True)
+
     name = models.CharField(
         max_length=32,
         unique=True,
@@ -349,3 +355,32 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Legend(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    changed_at = models.DateTimeField(auto_now=True)
+
+    title = models.CharField(max_length=32)
+
+    def __str__(self):
+        return self.title
+
+
+class LegendEntry(SortableMixin):
+    class Meta:
+        ordering = ["order"]
+
+    legend = models.ForeignKey(Legend, on_delete=models.CASCADE, related_name="entries")
+    text = models.CharField(max_length=64)
+    color = ColorField(default="#FFFFFF")
+    TYPE_CHOICES = [
+        ("rect", "Rectangle"),
+        ("circle", "Circle"),
+        ("line", "Line"),
+    ]
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES, default="rect")
+    order = models.PositiveIntegerField(default=0, editable=False, db_index=True)
+
+    def __str__(self):
+        return self.text
