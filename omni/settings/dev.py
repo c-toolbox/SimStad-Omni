@@ -34,8 +34,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "whitenoise.runserver_nostatic",
     "communication",
+	"simstad",
     "django_cleanup.apps.CleanupConfig",
-    "adminsortable",
     "colorfield",
 ]
 

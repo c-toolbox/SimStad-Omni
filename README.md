@@ -71,8 +71,8 @@ Omni provides additional messages
 ```
 $ git clone git@gitlab.liu.se:C/General/remote-interaction/omni.git
 $ cd omni
-$ pipenv install
-$ pipenv shell
+$ python -m pipenv install
+$ python -m pipenv shell
 $ python manage.py migrate --run-syncdb
 $ python manage.py createsuperuser
 $ python manage.py runserver

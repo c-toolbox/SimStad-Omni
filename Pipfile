@@ -15,7 +15,6 @@ psycopg2-binary = "*"
 whitenoise = "*"
 pillow = "*"
 django-cleanup = "*"
-django-admin-sortable = "*"
 django-colorfield = "*"
 
 [dev-packages]
