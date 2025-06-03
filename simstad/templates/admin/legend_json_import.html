@@ -1,0 +1,35 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+	<div class="module">
+		<form method="post" enctype="multipart/form-data" class="admin-form">
+			{% csrf_token %}
+			{{ form.as_p }}
+			<div class="form-row">
+				<input type="submit" value="Upload" class="default">
+			</div>
+		</form>
+		
+		<p style="margin-top: 16px;">JSON Format:</p>
+		<pre><code>
+[
+  {
+    "text": "Label 1",
+    "color": "#FF0000",
+    "type": "rectangle"
+  },
+  {
+    "text": "Label 2",
+    "color": "#00FF00",
+    "type": "circle"
+  },
+  {
+    "text": "Label 3",
+    "color": "#0000FF",
+    "type": "line"
+  },
+  ...
+]
+			</code></pre>
+	</div>
+{% endblock %}

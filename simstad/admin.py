@@ -1,3 +1,4 @@
+import json
 from django.contrib import admin
 from django.utils.html import format_html
 from django.shortcuts import render, redirect
@@ -14,7 +15,7 @@ from .models import (
     Legend,
     LegendEntry,
 )
-from .forms import BulkUploadForm
+from .forms import BulkUploadForm, LegendJsonImportForm
 
 # Return the installed apps in the order the user has registred them
 def get_app_list(self, request, app_label=None):
@@ -23,6 +24,9 @@ def get_app_list(self, request, app_label=None):
     return app_list
 
 admin.AdminSite.get_app_list = get_app_list
+
+
+# --- City --- #
 
 @admin.register(City)
 class CityAdmin(admin.ModelAdmin):
@@ -53,6 +57,9 @@ class CityAdmin(admin.ModelAdmin):
     @admin.display(description="Rasters")
     def raster_count(self, obj: City):
         return obj.raster_set.count()
+
+
+# --- Collection --- #
 
 class CollectionScenarioInline(admin.TabularInline):
     verbose_name = "Scenario"
@@ -93,6 +100,9 @@ class CollectionAdmin(admin.ModelAdmin):
     def scenario_count(self, obj: Collection):
         return obj.scenarios.count()
 
+
+# --- Scenario --- #
+
 class ScenarioRasterInline(admin.TabularInline):
     verbose_name = "Raster"
     verbose_name_plural = "Rasters"
@@ -110,6 +120,7 @@ class ScenarioAdmin(admin.ModelAdmin):
         "key",
         "city",
         "collection",
+        "raster_count",
         "legend_type",
         "created_at",
         "changed_at",
@@ -127,6 +138,10 @@ class ScenarioAdmin(admin.ModelAdmin):
     def collection(self, obj: Scenario):
         return obj.collections.first()
 
+    @admin.display(description="Rasters")
+    def raster_count(self, obj: Scenario):
+        return obj.rasters.count()
+
     @admin.display(description="Legend")
     def legend_type(self, obj: Scenario):
         if obj.legend:
@@ -134,7 +149,10 @@ class ScenarioAdmin(admin.ModelAdmin):
         elif obj.legend_image:
             return obj.legend_image
         else:
-            return "uh oh"
+            return None
+
+
+# --- Raster --- #
 
 @admin.register(Raster)
 class RasterAdmin(admin.ModelAdmin):
@@ -218,7 +236,7 @@ class RasterAdmin(admin.ModelAdmin):
                 self.message_user(
                     request, f"Successfully uploaded {len(images)} images."
                 )
-                return redirect(reverse("admin:communication_raster_changelist"))
+                return redirect(reverse("admin:simstad_raster_changelist"))
 
         else:
             form = BulkUploadForm()
@@ -229,6 +247,9 @@ class RasterAdmin(admin.ModelAdmin):
             form=form,
         )
         return render(request, "admin/bulk_upload.html", context)
+
+
+# --- Tag --- #
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
@@ -244,6 +265,9 @@ class TagAdmin(admin.ModelAdmin):
     def raster_count(self, obj: Tag):
         return Raster.objects.filter(tags=obj).count()
 
+
+# --- Legend --- #
+
 class LegendEntryInline(admin.TabularInline):
     model = LegendEntry
     extra = 0
@@ -251,6 +275,7 @@ class LegendEntryInline(admin.TabularInline):
 
 @admin.register(Legend)
 class LegendAdmin(admin.ModelAdmin):
+    change_list_template = "admin/legend_change_list.html"
     inlines = [LegendEntryInline]
     list_display = [
         "title",
@@ -273,3 +298,45 @@ class LegendAdmin(admin.ModelAdmin):
         for entry in obj.entries.all():
             html += f'<div style="display:inline-block;width:16px;height:16px;margin:1px;background-color:{entry.color};"></div>'
         return format_html(html)
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "import_json",
+                self.admin_site.admin_view(self.import_json_view),
+                name="legend_json_import",
+            ),
+        ]
+        return custom_urls + urls
+
+    def import_json_view(self, request):
+        if request.method == "POST":
+            form = LegendJsonImportForm(request.POST)
+            if form.is_valid():
+                title = form.cleaned_data["title"]
+                json_data = form.cleaned_data["json_data"]
+                try:
+                    entries = json.loads(json_data)
+                    legend = Legend.objects.create(title=title)
+                    for idx, entry in enumerate(entries):
+                        LegendEntry.objects.create(
+                            legend=legend,
+                            text=entry.get("text", ""),
+                            color=entry.get("color", "#FFFFFF"),
+                            type=entry.get("type", "rect"),
+                            order=idx,
+                        )
+                    self.message_user(request, f"Legend '{title}' imported with {len(entries)} entries.")
+                    return redirect(reverse("admin:simstad_legend_change", args=[legend.id]))
+                except Exception as e:
+                    form.add_error("json_data", f"Invalid JSON or error creating entries: {e}")
+        else:
+            form = LegendJsonImportForm()
+
+        context = dict(
+            self.admin_site.each_context(request),
+            title="Import Legend from JSON",
+            form=form,
+        )
+        return render(request, "admin/legend_json_import.html", context)

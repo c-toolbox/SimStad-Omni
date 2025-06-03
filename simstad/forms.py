@@ -31,3 +31,11 @@ class BulkUploadForm(forms.Form):
         queryset=Tag.objects.all(),
         required=False,
     )
+
+
+class LegendJsonImportForm(forms.Form):
+    title = forms.CharField(label="Legend title", max_length=32)
+    json_data = forms.CharField(
+        label="Legend entries (JSON array)",
+        widget=forms.Textarea(attrs={"rows": 10, "cols": 80}),
+    )

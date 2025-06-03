@@ -20,7 +20,7 @@ class City(models.Model):
     )
 
     name = models.CharField(
-        max_length=32,
+        max_length=64,
         help_text="Name of the city",
     )
 
@@ -47,13 +47,14 @@ class Collection(models.Model):
     )
 
     name = models.CharField(
-        max_length=32,
+        max_length=64,
         help_text="Name of the collection",
     )
 
     city = models.ForeignKey(
         City,
         on_delete=models.CASCADE,
+        related_name="collections",
         help_text="The city the collection belongs to",
     )
 
@@ -102,7 +103,7 @@ class Scenario(models.Model):
     )
 
     name = models.CharField(
-        max_length=32,
+        max_length=64,
         help_text="Name of the scenario",
     )
 
@@ -182,7 +183,7 @@ class Raster(models.Model):
     )
 
     name = models.CharField(
-        max_length=32,
+        max_length=64,
         help_text="Name of the raster",
     )
 
@@ -190,6 +191,7 @@ class Raster(models.Model):
         City,
         on_delete=models.CASCADE,
         help_text="The city the raster belongs to",
+        related_name="rasters",
     )
 
     tags = models.ManyToManyField(
