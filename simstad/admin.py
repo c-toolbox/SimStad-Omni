@@ -15,22 +15,15 @@ from .models import (
     Legend,
     LegendEntry,
 )
+from modeltranslation.admin import TranslationAdmin, TranslationTabularInline
 from .forms import BulkUploadForm, LegendJsonImportForm
-
-# Return the installed apps in the order the user has registred them
-def get_app_list(self, request, app_label=None):
-    app_dict = self._build_app_dict(request, app_label)
-    app_list = app_dict.values()
-    return app_list
-
-admin.AdminSite.get_app_list = get_app_list
 
 
 # --- City --- #
 
 
 @admin.register(City)
-class CityAdmin(admin.ModelAdmin):
+class CityAdmin(TranslationAdmin):
     list_display = [
         "key",
         "name",
@@ -53,15 +46,15 @@ class CityAdmin(admin.ModelAdmin):
 
     @admin.display(description="Collections")
     def collection_count(self, obj: City):
-        return obj.collection_set.count()
+        return obj.collections.count()
 
     @admin.display(description="Scenarios")
     def scenario_count(self, obj: City):
-        return obj.scenario_set.count()
+        return obj.scenarios.count()
 
     @admin.display(description="Rasters")
     def raster_count(self, obj: City):
-        return obj.raster_set.count()
+        return obj.rasters.count()
 
 
 # --- Collection --- #
@@ -75,8 +68,9 @@ class CollectionScenarioInline(admin.TabularInline):
     fields = ["scenario"]
     sortable_field_name = "order"
 
+
 @admin.register(Collection)
-class CollectionAdmin(admin.ModelAdmin):
+class CollectionAdmin(TranslationAdmin):
     inlines = [CollectionScenarioInline]
     list_filter = ["city"]
     list_display = [
@@ -120,7 +114,7 @@ class ScenarioRasterInline(admin.TabularInline):
 
 
 @admin.register(Scenario)
-class ScenarioAdmin(admin.ModelAdmin):
+class ScenarioAdmin(TranslationAdmin):
     inlines = [ScenarioRasterInline]
     list_filter = ["city", "collections"]
     list_display = [
@@ -164,7 +158,7 @@ class ScenarioAdmin(admin.ModelAdmin):
 
 
 @admin.register(Raster)
-class RasterAdmin(admin.ModelAdmin):
+class RasterAdmin(TranslationAdmin):
     change_list_template = "admin/raster_change_list.html"
     list_filter = ["city", "scenarios", "tags"]
     list_display = [
@@ -233,7 +227,8 @@ class RasterAdmin(admin.ModelAdmin):
                     name = image.name.rsplit(".", 1)[0]  # Use the filename as the name
                     raster = Raster(
                         key=name,
-                        name=name,
+                        name_en=name.replace("_", " ").title(),
+                        name_sv=name.replace("_", " ").title(),
                         city=city,
                         image=image,
                         created_at=timezone.now(),
@@ -262,7 +257,7 @@ class RasterAdmin(admin.ModelAdmin):
 
 
 @admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
+class TagAdmin(TranslationAdmin):
     list_display = [
         "name",
         "raster_count",
@@ -278,14 +273,15 @@ class TagAdmin(admin.ModelAdmin):
 
 # --- Legend --- #
 
-class LegendEntryInline(admin.TabularInline):
+
+class LegendEntryInline(TranslationTabularInline):
     model = LegendEntry
     extra = 0
     fields = ["text", "color", "type"]
 
 
 @admin.register(Legend)
-class LegendAdmin(admin.ModelAdmin):
+class LegendAdmin(TranslationAdmin):
     change_list_template = "admin/legend_change_list.html"
     inlines = [LegendEntryInline]
     list_display = [
@@ -329,19 +325,27 @@ class LegendAdmin(admin.ModelAdmin):
                 json_data = form.cleaned_data["json_data"]
                 try:
                     entries = json.loads(json_data)
-                    legend = Legend.objects.create(title=title)
+                    legend = Legend.objects.create(title_en=title, title_sv=title)
                     for idx, entry in enumerate(entries):
                         LegendEntry.objects.create(
                             legend=legend,
-                            text=entry.get("text", ""),
+                            text_en=entry.get("text", ""),
+                            text_sv=entry.get("text", ""),
                             color=entry.get("color", "#FFFFFF"),
                             type=entry.get("type", "rect"),
                             order=idx,
                         )
-                    self.message_user(request, f"Legend '{title}' imported with {len(entries)} entries.")
-                    return redirect(reverse("admin:simstad_legend_change", args=[legend.id]))
+                    self.message_user(
+                        request,
+                        f"Legend '{title}' imported with {len(entries)} entries.",
+                    )
+                    return redirect(
+                        reverse("admin:simstad_legend_change", args=[legend.id])
+                    )
                 except Exception as e:
-                    form.add_error("json_data", f"Invalid JSON or error creating entries: {e}")
+                    form.add_error(
+                        "json_data", f"Invalid JSON or error creating entries: {e}"
+                    )
         else:
             form = LegendJsonImportForm()
 

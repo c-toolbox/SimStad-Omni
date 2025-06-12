@@ -2,12 +2,6 @@ from rest_framework import serializers
 from .models import City, Collection, Scenario, Raster, Tag, Legend, LegendEntry
 
 
-class TagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tag
-        fields = ["name"]
-
-
 class LegendEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = LegendEntry
@@ -23,11 +17,14 @@ class LegendSerializer(serializers.ModelSerializer):
 
 
 class RasterSerializer(serializers.ModelSerializer):
+    tags = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
+
     class Meta:
         model = Raster
         fields = [
             "key",
-            "name",
+            "name_en",
+            "name_sv",
             "image",
             "minimap",
             "thumbnail",

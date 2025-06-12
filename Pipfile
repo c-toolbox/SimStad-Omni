@@ -16,6 +16,7 @@ whitenoise = "*"
 pillow = "*"
 django-cleanup = "*"
 django-colorfield = "*"
+django-modeltranslation = "*"
 
 [dev-packages]
 

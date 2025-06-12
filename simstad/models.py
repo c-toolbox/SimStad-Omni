@@ -168,6 +168,12 @@ class ScenarioRaster(models.Model):
         return self.raster.key
 
 
+def upload_raster(instance, filename):
+    base, ext = os.path.splitext(filename)
+    new_filename = f"{instance.key}{ext.lower()}"
+    return f"rasters/{new_filename}"
+
+
 class Raster(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
@@ -197,54 +203,63 @@ class Raster(models.Model):
         help_text="Tags associated with the raster",
     )
 
-    image = models.ImageField(upload_to="rasters/")
+    image = models.ImageField(upload_to=upload_raster)
     minimap = models.ImageField(upload_to="minimaps/", null=True, blank=True)
     thumbnail = models.ImageField(upload_to="thumbnails/", null=True, blank=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._old_key = self.key
         self._old_image = self.image
 
     def save(self, *args, **kwargs):
-        # Save the model first to ensure `self.image` has a path
+        is_new = self.pk is None
+        key_changed = self.key != self._old_key and self._old_key
+        image_changed = self.image != self._old_image and self._old_image
+
+        # Save first to get a file path and PK
         super().save(*args, **kwargs)
 
-        if self.image and (not self.minimap or self.image != self._old_image):
+        if self.image and (is_new or image_changed or key_changed):
+            if key_changed and not image_changed:
+                self.rename_image()
             self.generate_minimap()
             self.generate_thumbnail()
-            super().save(*args, **kwargs)
+            super().save(update_fields=["image", "minimap", "thumbnail"])
+
+        self._old_key = self.key
+        self._old_image = self.image
+
+    def rename_image(self):
+        os.rename(self.image.path, self.get_output_path("rasters"))
+        self.image.name = self.get_output_relpath("rasters")
 
     def generate_minimap(self):
         minimap = generate_minimap(self.image.path)
-
-        # Ensure the minimaps directory exists
-        minimap_dir = os.path.join(os.path.dirname(self.image.path), "..", "minimaps")
-        os.makedirs(minimap_dir, exist_ok=True)
-
-        base_name = os.path.basename(self.image.name)
-        minimap_path = os.path.join(minimap_dir, base_name)
-
-        minimap.save(minimap_path, format="PNG")
-
-        # Update the model's minimap field
-        self.minimap.name = os.path.join("minimaps", base_name)
+        path = self.get_output_path("minimaps")
+        minimap.save(path, format="PNG")
+        self.minimap.name = self.get_output_relpath("minimaps")
 
     def generate_thumbnail(self):
         thumbnail = generate_thumbnail(self.image.path)
+        path = self.get_output_path("thumbnails")
+        thumbnail.save(path, format="PNG")
+        self.thumbnail.name = self.get_output_relpath("thumbnails")
 
-        # Ensure the thumbnails directory exists
-        thumbnail_dir = os.path.join(
-            os.path.dirname(self.image.path), "..", "thumbnails"
+    def get_output_path(self, folder):
+        ext = self.get_extension()
+        return os.path.abspath(
+            os.path.join(
+                os.path.dirname(self.image.path), "..", folder, f"{self.key}{ext}"
+            )
         )
-        os.makedirs(thumbnail_dir, exist_ok=True)
 
-        base_name = os.path.basename(self.image.name)
-        thumbnail_path = os.path.join(thumbnail_dir, base_name)
+    def get_output_relpath(self, folder):
+        ext = self.get_extension()
+        return os.path.join(folder, f"{self.key}{ext}")
 
-        thumbnail.save(thumbnail_path, format="PNG")
-
-        # Update the model's thumbnail field
-        self.thumbnail.name = os.path.join("thumbnails", base_name)
+    def get_extension(self):
+        return os.path.splitext(self.image.name)[1].lower()
 
     def __str__(self):
         return self.name
