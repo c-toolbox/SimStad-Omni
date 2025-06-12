@@ -28,11 +28,12 @@ admin.AdminSite.get_app_list = get_app_list
 
 # --- City --- #
 
+
 @admin.register(City)
 class CityAdmin(admin.ModelAdmin):
     list_display = [
-        "name",
         "key",
+        "name",
         "service",
         "collection_count",
         "scenario_count",
@@ -41,9 +42,13 @@ class CityAdmin(admin.ModelAdmin):
         "changed_at",
     ]
     fields = [
-        "name",
         "key",
+        "name",
         "service",
+        "min_x",
+        "min_y",
+        "max_x",
+        "max_y",
     ]
 
     @admin.display(description="Collections")
@@ -61,6 +66,7 @@ class CityAdmin(admin.ModelAdmin):
 
 # --- Collection --- #
 
+
 class CollectionScenarioInline(admin.TabularInline):
     verbose_name = "Scenario"
     verbose_name_plural = "Scenarios"
@@ -74,8 +80,8 @@ class CollectionAdmin(admin.ModelAdmin):
     inlines = [CollectionScenarioInline]
     list_filter = ["city"]
     list_display = [
-        "name",
         "key",
+        "name",
         "city",
         "blocks_video",
         "scenario_count",
@@ -84,8 +90,8 @@ class CollectionAdmin(admin.ModelAdmin):
         "changed_at",
     ]
     fields = [
-        "name",
         "key",
+        "name",
         "city",
         "blocks_video",
         "image",
@@ -103,6 +109,7 @@ class CollectionAdmin(admin.ModelAdmin):
 
 # --- Scenario --- #
 
+
 class ScenarioRasterInline(admin.TabularInline):
     verbose_name = "Raster"
     verbose_name_plural = "Rasters"
@@ -111,13 +118,14 @@ class ScenarioRasterInline(admin.TabularInline):
     fields = ["raster"]
     sortable_field_name = "order"
 
+
 @admin.register(Scenario)
 class ScenarioAdmin(admin.ModelAdmin):
     inlines = [ScenarioRasterInline]
     list_filter = ["city", "collections"]
     list_display = [
-        "name",
         "key",
+        "name",
         "city",
         "collection",
         "raster_count",
@@ -126,8 +134,8 @@ class ScenarioAdmin(admin.ModelAdmin):
         "changed_at",
     ]
     fields = [
-        "name",
         "key",
+        "name",
         "description",
         "city",
         "legend",
@@ -154,13 +162,14 @@ class ScenarioAdmin(admin.ModelAdmin):
 
 # --- Raster --- #
 
+
 @admin.register(Raster)
 class RasterAdmin(admin.ModelAdmin):
     change_list_template = "admin/raster_change_list.html"
     list_filter = ["city", "scenarios", "tags"]
     list_display = [
-        "name",
         "key",
+        "name",
         "city",
         "scenario",
         "tag_list",
@@ -169,8 +178,8 @@ class RasterAdmin(admin.ModelAdmin):
         "changed_at",
     ]
     fields = [
-        "name",
         "key",
+        "name",
         "city",
         "tags",
         "image",
@@ -251,6 +260,7 @@ class RasterAdmin(admin.ModelAdmin):
 
 # --- Tag --- #
 
+
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = [
@@ -272,6 +282,7 @@ class LegendEntryInline(admin.TabularInline):
     model = LegendEntry
     extra = 0
     fields = ["text", "color", "type"]
+
 
 @admin.register(Legend)
 class LegendAdmin(admin.ModelAdmin):

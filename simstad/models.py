@@ -1,4 +1,4 @@
-import random, re, uuid, os
+import os
 from django.db import models
 from colorfield.fields import ColorField
 from .utils import generate_minimap, generate_thumbnail
@@ -29,6 +29,19 @@ class City(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         help_text="WebSocket service the city exhibit uses",
+    )
+
+    min_x = models.FloatField(
+        default=130000, help_text="Minimum X coordinate (SWEREF 99 TM)"
+    )
+    min_y = models.FloatField(
+        default=6400000, help_text="Minimum Y coordinate (SWEREF 99 TM)"
+    )
+    max_x = models.FloatField(
+        default=140000, help_text="Maximum X coordinate (SWEREF 99 TM)"
+    )
+    max_y = models.FloatField(
+        default=6500000, help_text="Maximum Y coordinate (SWEREF 99 TM)"
     )
 
     def __str__(self):
@@ -89,7 +102,6 @@ class CollectionScenario(models.Model):
 
     def __str__(self):
         return self.scenario.key
-        # return f"{self.collection.key}_{self.scenario.key}"
 
 
 class Scenario(models.Model):
@@ -114,6 +126,7 @@ class Scenario(models.Model):
     city = models.ForeignKey(
         City,
         on_delete=models.CASCADE,
+        related_name="scenarios",
         help_text="The city the collection belongs to",
     )
 
@@ -122,22 +135,6 @@ class Scenario(models.Model):
         through="ScenarioRaster",
         related_name="scenarios",
     )
-
-    # Legend: LegendTitle+LegendColors, LegendImage, LegendSource
-    # Interaction: None, Buttons, Slider
-
-    # class YearInSchool(models.TextChoices):
-    #     FRESHMAN = 'FR', _('Freshman')
-    #     SOPHOMORE = 'SO', _('Sophomore')
-    #     JUNIOR = 'JR', _('Junior')
-    #     SENIOR = 'SR', _('Senior')
-    #     GRADUATE = 'GR', _('Graduate')
-
-    # year_in_school = models.CharField(
-    #     max_length=2,
-    #     choices=YearInSchool.choices,
-    #     default=YearInSchool.FRESHMAN,
-    # )
 
     legend = models.ForeignKey(
         "Legend",
@@ -169,7 +166,6 @@ class ScenarioRaster(models.Model):
 
     def __str__(self):
         return self.raster.key
-        # return f"{self.scenario.key}_{self.raster.key}"
 
 
 class Raster(models.Model):
