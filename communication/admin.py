@@ -1,36 +1,45 @@
 from django.contrib import admin
-from .models import Service
-
-
-# Return the installed apps in the order the user has registred them
-def get_app_list(self, request, app_label=None):
-    app_dict = self._build_app_dict(request, app_label)
-    app_list = list(app_dict.values())
-    return app_list
-
-
-admin.AdminSite.get_app_list = get_app_list
+from .models import Service, Session
 
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
     list_display = [
         "title",
+        "session_count",
         "allow_public_code",
-        "allow_multiple_hosts",
-        "created_at",
-        "changed_at",
+        "created_on",
     ]
     fields = [
         "title",
         "host_token",
         "client_token",
         "allow_public_code",
-        "allow_multiple_hosts",
-        "public_code",
     ]
     readonly_fields = [
+        "created_on",
         "host_token",
         "client_token",
-        "public_code",
+    ]
+
+
+@admin.register(Session)
+class SessionAdmin(admin.ModelAdmin):
+    list_display = [
+        "created_on",
+        "service",
+        "code",
+        "guest_count",
+    ]
+    fields = [
+        "created_on",
+        "service",
+        "code",
+        "guest_count",
+    ]
+    readonly_fields = [
+        "created_on",
+        "service",
+        "code",
+        "guest_count",
     ]

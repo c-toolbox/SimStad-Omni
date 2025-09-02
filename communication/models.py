@@ -8,7 +8,7 @@ def generate_code():
     while True:
         random.shuffle(chars)
         code = "".join(chars[:size])
-        if not Service.objects.filter(public_code=code).exists():
+        if not Session.objects.filter(code=code).exists():
             return code
 
 
@@ -18,8 +18,7 @@ def safe_string(text):
 
 class Service(models.Model):
     # Creation date
-    created_at = models.DateTimeField(auto_now_add=True)
-    changed_at = models.DateTimeField(auto_now=True)
+    created_on = models.DateTimeField(auto_now_add=True)
 
     # Title describing the service
     title = models.CharField(
@@ -53,40 +52,62 @@ class Service(models.Model):
         help_text="If enabled, the service will be accessible through a public code or link. A new code is generated everytime the host connects.",
     )
 
-    # Boolean for multiple hosts
-    allow_multiple_hosts = models.BooleanField(
-        default=False,
-        help_text="If enabled, the service allows multiple hosts to be connected at the same time. Otherwise, a new host kicks the older ones.",
-    )
+    # TODO: Add a field for the host to set the number of guests allowed
 
-    # Unique code for visitors to join via
-    public_code = models.CharField(
-        max_length=8,
-        null=True,
-        default=None,
-        help_text="The public code for guests to connect via. A new code is generated everytime the host connects.",
-    )
+    # TODO: Add a field for only allowing certain dns or ip addresses
 
-    def generate_code(self):
-        self.public_code = generate_code()
-        self.save()
-        return self.public_code
+    def add_session(self):
+        group_key = safe_string(self.title)
+        session = Session(service=self, group_key=group_key)
+        session.save()
+        return session
 
-    def clear_code(self):
-        self.public_code = None
-        self.save()
+    @property
+    def session_count(self):
+        return self.session_set.count()
 
     def __str__(self):
         return self.title
 
+
+class Session(models.Model):
+    # Creation date
+    created_on = models.DateTimeField(auto_now_add=True)
+
+    # Service that the session is connected to
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+
+    # Group key for the session
+    group_key = models.CharField(
+        max_length=32,
+        help_text="A group key name used for websocket channels",
+    )
+
+    # Unique code for visitors to join via
+    code = models.CharField(
+        max_length=8,
+        null=True,
+        default=generate_code,
+        help_text="The public code for guests to connect via. A new code is generated everytime the host connects to a service.",
+    )
+
+    # Number of guests connected
+    guest_count = models.IntegerField(
+        default=0,
+        help_text="The number of guests that are connected to this session",
+    )
+
     @property
     def host_group(self):
-        return "host_" + safe_string(self.title)
+        return f"host_{self.group_key}_{self.code}"
 
     @property
     def client_group(self):
-        return "client_" + safe_string(self.title)
+        return f"client_{self.group_key}_{self.code}"
 
     @property
     def guest_group(self):
-        return "guest_" + safe_string(self.title)
+        return f"guest_{self.group_key}_{self.code}"
+
+    def __str__(self):
+        return f"{self.group_key} ({self.code})"
