@@ -1,4 +1,5 @@
 import uuid
+from PIL import Image
 
 
 def is_uuid(text):

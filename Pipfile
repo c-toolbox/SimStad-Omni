@@ -13,6 +13,10 @@ channels-redis = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
 whitenoise = "*"
+pillow = "*"
+django-cleanup = "*"
+django-colorfield = "*"
+django-modeltranslation = "*"
 
 [dev-packages]
 

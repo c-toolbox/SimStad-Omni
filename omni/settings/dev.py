@@ -24,6 +24,7 @@ ALLOWED_HOSTS = ["*"]
 INSTALLED_APPS = [
     "daphne",
     "channels",
+    "modeltranslation",
     "rest_framework",
     "corsheaders",
     "django.contrib.admin",
@@ -34,6 +35,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "whitenoise.runserver_nostatic",
     "communication",
+    "simstad",
+    "django_cleanup.apps.CleanupConfig",
+    "colorfield",
 ]
 
 ASGI_APPLICATION = "omni.asgi.application"
@@ -57,6 +61,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
@@ -115,7 +120,11 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "sv-se"
+LANGUAGES = [
+    ("en", "English"),
+    ("sv", "Swedish"),
+]
 
 TIME_ZONE = "Europe/Stockholm"
 
@@ -141,3 +150,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Handle css
 mimetypes.add_type("text/css", ".css", True)
+
+
+# Media files
+
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"

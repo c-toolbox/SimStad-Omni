@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-from .models import Service, Visitor
+from .models import Service
 
 
 def index(request):
