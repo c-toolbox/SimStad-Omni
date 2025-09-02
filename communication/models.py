@@ -46,11 +46,11 @@ class Service(models.Model):
         help_text="Token used to access this service as a client. Use this in the user interface display, if any",
     )
 
-    SESSION_MODES = {
+    SESSION_MODES = [
         ("SS", "Kick existing hosts"),  # Single host, single session
         ("MS", "Join existing session"),  # Multiple hosts, single session
         ("SM", "Create new session"),  # Single host, multiple sessions
-    }
+    ]
 
     # Session mode
     session_mode = models.CharField(
