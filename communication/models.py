@@ -46,10 +46,24 @@ class Service(models.Model):
         help_text="Token used to access this service as a client. Use this in the user interface display, if any",
     )
 
+    SESSION_MODES = {
+        ("SS", "Kick existing hosts"),  # Single host, single session
+        ("MS", "Join existing session"),  # Multiple hosts, single session
+        ("SM", "Create new session"),  # Single host, multiple sessions
+    }
+
+    # Session mode
+    session_mode = models.CharField(
+        max_length=2,
+        choices=SESSION_MODES,
+        default="SS",
+        help_text="Specifies how hosts and sessions are handled when a new host joins.<ul><li>- For exhibits with multiple hosts or multiple projectors, use 'Join existing session'.</li><li>- For exhibits that operate independently, use 'Create new session'.</li><li>- For unique exhibits, use 'Kick existing hosts'.</li></ul>",
+    )
+
     # Boolean for public code generation
     allow_public_code = models.BooleanField(
         default=False,
-        help_text="If enabled, the service will be accessible through a public code or link. A new code is generated everytime the host connects.",
+        help_text="If enabled, the service will be accessible through a public code or link. A new code is generated everytime the host connects. Enable this for exhibits where you want visitors to join in.",
     )
 
     # TODO: Add a field for the host to set the number of guests allowed
@@ -65,6 +79,18 @@ class Service(models.Model):
     @property
     def session_count(self):
         return self.session_set.count()
+
+    @property
+    def should_kick_host(self):
+        return self.session_mode == "SS"
+
+    @property
+    def never_delete_session(self):
+        return self.session_mode == "MS"
+
+    @property
+    def always_new_session(self):
+        return self.session_mode == "SM"
 
     def __str__(self):
         return self.title
@@ -96,6 +122,15 @@ class Session(models.Model):
         default=0,
         help_text="The number of guests that are connected to this session",
     )
+
+    # Increment the guest_count field by a given value atomically
+    def increment_guest_count(self, value: int):
+        self.guest_count = models.F("guest_count") + value
+        self.save(update_fields=["guest_count"])
+
+    @property
+    def host_service_group(self):
+        return f"host_{self.group_key}"
 
     @property
     def host_group(self):

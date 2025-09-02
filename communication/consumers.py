@@ -15,9 +15,13 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
     authorized = False
     is_host = False
     is_guest = False
+    should_kick_host = False
+    never_delete_session = False
+    always_new_session = False
     allow_public_code = False
     session_code = None
     host_token = None
+    host_service_group = None  # For hosts in the same service
     host_group = None
     client_group = None
     guest_group = None
@@ -43,6 +47,8 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
     async def disconnect(self, code):
         print(f"- {self} Disconnected ({explain_websocket_code(code)})")
 
+        await self.increment_guest_count(self.session_code, -1)
+
         if self.is_host:
             # Clear service code
             if code != 4000:
@@ -56,6 +62,11 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
 
         # Remove the user's channel name from Redis
         await self.redis_delete(f"user:{self.short_name}")
+
+        if self.host_service_group:
+            await self.channel_layer.group_discard(
+                self.host_service_group, self.channel_name
+            )
 
         if self.host_group:
             await self.channel_layer.group_discard(self.host_group, self.channel_name)
@@ -134,16 +145,9 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
             await self.send_json({"type": "server_error", "message": message})
             return await self.close()
 
-        # Force existing host to leave
-        if self.is_host and not self.allow_public_code:
-            await self.channel_layer.group_send(
-                self.my_group,
-                {"type": "on_kick", "message": "Kicked by new host"},
-            )
-
         # Find existing session or create a new one
         session = await self.find_session(token)
-        if self.is_host and self.allow_public_code:
+        if self.is_host and (not session or self.always_new_session):
             session = await self.create_session()
         elif not session:
             self.authorized = False
@@ -158,13 +162,26 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
 
         # Set session groups
         self.session_code = session.code
+        self.host_service_group = session.host_service_group
         self.host_group = session.host_group
         self.client_group = session.client_group
         self.guest_group = session.guest_group
 
+        # Force existing host to leave
+        if self.is_host and self.should_kick_host:
+            await self.channel_layer.group_send(
+                self.host_service_group,
+                {"type": "on_kick", "message": "Kicked by new host"},
+            )
+
         # Subscribe to group
         await self.channel_layer.group_add(self.my_group, self.channel_name)
         print(f"+ {self} Subscribed to '{self.my_group}'")
+        if self.is_host:
+            await self.channel_layer.group_add(
+                self.host_service_group, self.channel_name
+            )
+            print(f"+ {self} Subscribed to '{self.host_service_group}'")
         if self.is_guest:
             await self.channel_layer.group_add(self.guest_group, self.channel_name)
             print(f"+ {self} Subscribed to '{self.guest_group}'")
@@ -187,12 +204,17 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
         # Store the user's channel name in Redis
         await self.redis_set(f"user:{self.short_name}", self.channel_name)
 
+        await self.increment_guest_count(self.session_code, 1)
+
     # Check if token matches a service
     async def check_token(self, token):
         service = await self.find_service(token)
         if service:
             self.authorized = True
             self.host_token = service.host_token
+            self.should_kick_host = service.should_kick_host
+            self.never_delete_session = service.never_delete_session
+            self.always_new_session = service.always_new_session
             self.allow_public_code = service.allow_public_code
             return True
         return False
@@ -268,12 +290,20 @@ class OmniConsumer(AsyncJsonWebsocketConsumer):
 
     @database_sync_to_async
     def clear_session(self, session_code):
-        if Session.objects.filter(code=session_code).exists():
+        if self.never_delete_session:
+            print(f"- {self} Never deleting session {session_code}")
+        elif Session.objects.filter(code=session_code).exists():
             session = Session.objects.get(code=session_code)
             session.delete()
             print(f"- {self} Clearing session {session_code}")
         else:
             print(f"- {self} Cannot clear session {session_code}")
+
+    @database_sync_to_async
+    def increment_guest_count(self, session_code, value: int):
+        if Session.objects.filter(code=session_code).exists():
+            session = Session.objects.get(code=session_code)
+            session.increment_guest_count(value)
 
     # Redis database
 
