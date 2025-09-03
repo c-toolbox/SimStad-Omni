@@ -96,7 +96,7 @@ class SessionLogAdmin(admin.ModelAdmin):
         return False
 
     def time_alive(self, obj: SessionLog):
-        delta = timezone.now() - obj.created_on
+        delta = obj.ended_at - obj.started_at
         seconds = int(delta.total_seconds())
 
         if seconds < 60:
