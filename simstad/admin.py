@@ -224,11 +224,18 @@ class RasterAdmin(TranslationAdmin):
                 images = request.FILES.getlist("images")
 
                 for image in images:
-                    name = image.name.rsplit(".", 1)[0]  # Use the filename as the name
+                    # Find a unique key for the raster
+                    base_name = image.name.rsplit(".", 1)[0]  # Use the image filename as base
+                    name = base_name
+                    counter = 1
+                    while Raster.objects.filter(key=name).exists():
+                        name = f"{base_name}_{counter}"
+                        counter += 1
+
                     raster = Raster(
                         key=name,
-                        name_en=name.replace("_", " ").title(),
-                        name_sv=name.replace("_", " ").title(),
+                        name_en=base_name.replace("_", " ").title(),
+                        name_sv=base_name.replace("_", " ").title(),
                         city=city,
                         image=image,
                         created_at=timezone.now(),
