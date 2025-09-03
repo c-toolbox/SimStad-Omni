@@ -17,6 +17,10 @@ def safe_string(text):
 
 
 class Service(models.Model):
+    class Meta:
+        verbose_name = "Service"
+        verbose_name_plural = " Services"
+
     # Creation date
     created_on = models.DateTimeField(auto_now_add=True)
 
@@ -97,6 +101,10 @@ class Service(models.Model):
 
 
 class Session(models.Model):
+    class Meta:
+        verbose_name = "Live session"
+        verbose_name_plural = "Live sessions"
+
     # Creation date
     created_on = models.DateTimeField(auto_now_add=True)
 
@@ -123,10 +131,33 @@ class Session(models.Model):
         help_text="The number of guests that are connected to this session",
     )
 
+    # Temporary variable to store the maximum number of guests that have been connected
+    _max_guest_count = 0
+
     # Increment the guest_count field by a given value atomically
     def increment_guest_count(self, value: int):
         self.guest_count = models.F("guest_count") + value
         self.save(update_fields=["guest_count"])
+
+        self.refresh_from_db()
+        if self.guest_count > self._max_guest_count:
+            self._max_guest_count = self.guest_count
+
+    # Override delete method to create a session log
+    def delete(self, *args, **kwargs):
+        # Create session log before deletion
+        SessionLog.objects.create(
+            service=self.service,
+            started_at=self.created_on,
+            max_guest_count=self.max_guest_count,
+        )
+
+        # Call the "real" delete() method
+        super().delete(*args, **kwargs)
+
+    @property
+    def max_guest_count(self):
+        return max(self.guest_count, self._max_guest_count)
 
     @property
     def host_service_group(self):
@@ -146,3 +177,21 @@ class Session(models.Model):
 
     def __str__(self):
         return f"{self.group_key} ({self.code})"
+
+
+class SessionLog(models.Model):
+    class Meta:
+        verbose_name = "Session log"
+        verbose_name_plural = "Session logs"
+
+    # Service that the session is connected to
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+
+    # Start time
+    started_at = models.DateTimeField()
+
+    # End time
+    ended_at = models.DateTimeField(auto_now_add=True)
+
+    # Number of guests
+    max_guest_count = models.IntegerField()

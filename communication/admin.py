@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Service, Session
+from .models import Service, Session, SessionLog
 from django.utils import timezone
 
 
@@ -48,6 +48,9 @@ class SessionAdmin(admin.ModelAdmin):
         "guest_count",
     ]
 
+    def has_add_permission(self, request, obj=None):
+        return False
+
     @admin.display(description="Code")
     def _code(self, obj: Session):
         if obj.service.allow_public_code:
@@ -55,6 +58,41 @@ class SessionAdmin(admin.ModelAdmin):
         return f"({obj.code})"
 
     def time_alive(self, obj: Session):
+        delta = timezone.now() - obj.created_on
+        seconds = int(delta.total_seconds())
+
+        if seconds < 60:
+            return f"{seconds}s"
+        minutes, seconds = divmod(seconds, 60)
+        if minutes < 60:
+            return f"{minutes}m {seconds}s"
+        hours, minutes = divmod(minutes, 60)
+        return f"{hours}h {minutes}m {seconds}s"
+
+
+@admin.register(SessionLog)
+class SessionLogAdmin(admin.ModelAdmin):
+    list_display = [
+        "started_at",
+        "ended_at",
+        "time_alive",
+        "service",
+        "max_guest_count",
+    ]
+    fields = [
+        "started_at",
+        "ended_at",
+        "service",
+        "max_guest_count",
+    ]
+    readonly_fields = [
+        "started_at",
+        "ended_at",
+        "service",
+        "max_guest_count",
+    ]
+
+    def time_alive(self, obj: SessionLog):
         delta = timezone.now() - obj.created_on
         seconds = int(delta.total_seconds())
 

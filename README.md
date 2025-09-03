@@ -50,32 +50,32 @@ Now you are ready to send messages between host and client. See [Sending message
 
 Omni provides additional messages
 
-- `{"type": "server_connect", "message": "..."}`
-    - Upon connecting successfully
-- `{"type": "server_disconnect", "message": "..."}`
-    - Upon forced disconnect, such as guests being kicked after host disconnects
-- `{"type": "server_authorized", "message": message}`
-    - Upon authorizing successfully
-- `{"type": "server_code", "code": <PUBLIC_CODE>}`
-    - Upon new public code being generated (when host authenticates)
-- `{"type": "server_join", "role": "host/client/guest", "user": <USER_ID>, "name": <OPTIONAL_NAME>}`
-    - Upon new application connecting.
-- `{"type": "server_leave", "role": "host/client/guest", "user": <USER_ID>}`
-    - Upon application disconnecting.
-- `{"type": "server_error", "message": "..."}`
-    - Errors including non-json message sent or invalid token.
+- Upon connecting successfully
+    - `{"type": "server_connect", "message": "..."}`
+- Upon forced disconnect, such as guests being kicked after host disconnects
+    - `{"type": "server_disconnect", "message": "..."}`
+- Upon authorizing successfully
+    - `{"type": "server_authorized", "message": message}`
+- Upon new public code being generated (when host authenticates)
+    - `{"type": "server_code", "code": <PUBLIC_CODE>}`
+- Upon new application connecting.
+    - `{"type": "server_join", "role": "host/client/guest", "user": <USER_ID>, "name": <OPTIONAL_NAME>}`
+- Upon application disconnecting.
+    - `{"type": "server_leave", "role": "host/client/guest", "user": <USER_ID>}`
+- Errors including non-json message sent or invalid token.
+    - `{"type": "server_error", "message": "..."}`
 
 ### Sending messages
 
 Once connected, any further messages will be sent between connected hosts and clients. **Messages must be in JSON format.**
 
 - Host sends: `{"foo": 123}`
-    - All clients and guests receive the message:
-    - `{"user": <HOST_ID>, "foo": 123}`
-    - The host's user id is appended to the message
-
-To send a message to a specific user, provide the user id in the message:
-- Send: `{"user": <USER_ID>, "foo": 123}`
+    - Clients receive: `{"foo": 123}`
+- Client sends: `{"foo": 123}`
+    - Hosts receive: `{"user": <USER_ID>, "foo": 123}`
+    - The client's user id is appended to the message
+- Host sends a targeted message: `{"user": <USER_ID>, "foo": 123}`
+    - Client of USER_ID receives: `{"user": <USER_ID>, "foo": 123}`
 
 ## Running Omni locally
 
