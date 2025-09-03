@@ -260,11 +260,11 @@ class Raster(models.Model):
 
     def get_output_path(self, folder):
         ext = self.get_extension()
-        return os.path.abspath(
-            os.path.join(
-                os.path.dirname(self.image.path), "..", folder, f"{self.key}{ext}"
-            )
+        folder_path = os.path.abspath(
+            os.path.join(os.path.dirname(self.image.path), "..", folder)
         )
+        os.makedirs(folder_path, exist_ok=True)
+        return os.path.join(folder_path, f"{self.key}{ext}")
 
     def get_output_relpath(self, folder):
         ext = self.get_extension()
