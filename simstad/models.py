@@ -8,7 +8,7 @@ from .utils import generate_minimap, generate_thumbnail
 class City(models.Model):
     class Meta:
         verbose_name = "City exhibit"
-        verbose_name_plural = "City exhibits"
+        verbose_name_plural = "  City exhibits"
 
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
@@ -50,6 +50,10 @@ class City(models.Model):
 
 # A collection of scenarios that follow a theme
 class Collection(models.Model):
+    class Meta:
+        verbose_name = "Collection"
+        verbose_name_plural = "  Collections"
+
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
 
@@ -105,6 +109,10 @@ class CollectionScenario(models.Model):
 
 
 class Scenario(models.Model):
+    class Meta:
+        verbose_name = "Scenario"
+        verbose_name_plural = "  Scenarios"
+
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
 
@@ -175,6 +183,10 @@ def upload_raster(instance, filename):
 
 
 class Raster(models.Model):
+    class Meta:
+        verbose_name = "Raster"
+        verbose_name_plural = " Rasters"
+
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
 
@@ -266,6 +278,10 @@ class Raster(models.Model):
 
 
 class Tag(models.Model):
+    class Meta:
+        verbose_name = "Tag"
+        verbose_name_plural = "Tags"
+
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
 
@@ -280,6 +296,10 @@ class Tag(models.Model):
 
 
 class Legend(models.Model):
+    class Meta:
+        verbose_name = "Legend"
+        verbose_name_plural = "Legends"
+
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
 
