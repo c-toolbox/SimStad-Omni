@@ -1,9 +1,15 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from .models import City, Tag
 
 
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
+
+    def __init__(self, attrs=None):
+        attrs = attrs or {}
+        attrs.update({"accept": ".png,.jpg,.jpeg"})  # client-side filter
+        super().__init__(attrs)
 
 
 class MultipleFileField(forms.FileField):
@@ -13,11 +19,22 @@ class MultipleFileField(forms.FileField):
 
     def clean(self, data, initial=None):
         single_file_clean = super().clean
+
         if isinstance(data, (list, tuple)):
-            result = [single_file_clean(d, initial) for d in data]
+            result = [self._validate_file(single_file_clean(d, initial)) for d in data]
         else:
-            result = single_file_clean(data, initial)
+            result = self._validate_file(single_file_clean(data, initial))
         return result
+
+    def _validate_file(self, file):
+        valid_extensions = ["png", "jpg", "jpeg"]
+        if file:
+            ext = file.name.split(".")[-1].lower()
+            if ext not in valid_extensions:
+                raise ValidationError(
+                    f"Unsupported file type: {ext}. Allowed types: PNG, JPG, JPEG."
+                )
+        return file
 
 
 class BulkUploadForm(forms.Form):
