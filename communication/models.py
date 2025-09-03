@@ -81,8 +81,12 @@ class Service(models.Model):
         return session
 
     @property
-    def session_count(self):
+    def live_session_count(self):
         return self.session_set.count()
+
+    @property
+    def times_used(self):
+        return self.session_set.count() + self.session_log_set.count()
 
     @property
     def should_kick_host(self):

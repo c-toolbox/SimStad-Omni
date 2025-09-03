@@ -7,9 +7,10 @@ from django.utils import timezone
 class ServiceAdmin(admin.ModelAdmin):
     list_display = [
         "title",
-        "session_count",
         "session_mode",
         "allow_public_code",
+        "live_session_count",
+        "times_used",
         "created_on",
     ]
     fields = [
