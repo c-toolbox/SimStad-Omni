@@ -19,6 +19,13 @@ from modeltranslation.admin import TranslationAdmin, TranslationTabularInline
 from .forms import BulkUploadForm, LegendJsonImportForm
 
 
+# Return the installed apps in the order the user has registered them.
+def get_app_list(self, request, app_label=None):
+    app_dict = self._build_app_dict(request, app_label)
+    app_list = app_dict.values()
+    return app_list
+
+
 # --- City --- #
 
 
