@@ -32,20 +32,17 @@ class SessionAdmin(admin.ModelAdmin):
         "created_on",
         "service",
         "_code",
-        "guest_count",
         "time_alive",
     ]
     fields = [
         "created_on",
         "service",
         "_code",
-        "guest_count",
     ]
     readonly_fields = [
         "created_on",
         "service",
         "_code",
-        "guest_count",
     ]
 
     def has_add_permission(self, request, obj=None):
@@ -77,19 +74,22 @@ class SessionLogAdmin(admin.ModelAdmin):
         "ended_at",
         "time_alive",
         "service",
-        "max_guest_count",
+        "client_count",
+        "message_count",
     ]
     fields = [
         "started_at",
         "ended_at",
         "service",
-        "max_guest_count",
+        "client_count",
+        "message_count",
     ]
     readonly_fields = [
         "started_at",
         "ended_at",
         "service",
-        "max_guest_count",
+        "client_count",
+        "message_count",
     ]
 
     def has_add_permission(self, request, obj=None):

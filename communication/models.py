@@ -125,39 +125,14 @@ class Session(models.Model):
         help_text="The public code for guests to connect via. A new code is generated everytime the host connects to a service.",
     )
 
-    # Number of guests connected
-    guest_count = models.IntegerField(
-        default=0,
-        help_text="The number of guests that are connected to this session",
-    )
-
-    # Temporary variable to store the maximum number of guests that have been connected
-    _max_guest_count = 0
-
-    # Increment the guest_count field by a given value atomically
-    def increment_guest_count(self, value: int):
-        self.guest_count = models.F("guest_count") + value
-        self.save(update_fields=["guest_count"])
-
-        self.refresh_from_db()
-        if self.guest_count > self._max_guest_count:
-            self._max_guest_count = self.guest_count
-
-    # Override delete method to create a session log
-    def delete(self, *args, **kwargs):
-        # Create session log before deletion
+    # Create session log before deletion
+    def create_log(self, client_count, message_count):
         SessionLog.objects.create(
             service=self.service,
             started_at=self.created_on,
-            max_guest_count=self.max_guest_count,
+            client_count=client_count,
+            message_count=message_count,
         )
-
-        # Call the "real" delete() method
-        super().delete(*args, **kwargs)
-
-    @property
-    def max_guest_count(self):
-        return max(self.guest_count, self._max_guest_count)
 
     @property
     def host_service_group(self):
@@ -193,5 +168,8 @@ class SessionLog(models.Model):
     # End time
     ended_at = models.DateTimeField(auto_now_add=True)
 
-    # Number of guests
-    max_guest_count = models.IntegerField()
+    # Number of connected clients
+    client_count = models.IntegerField(default=0)
+
+    # Number of messages sent
+    message_count = models.IntegerField(default=0)
