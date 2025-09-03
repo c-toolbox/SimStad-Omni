@@ -92,6 +92,9 @@ class SessionLogAdmin(admin.ModelAdmin):
         "max_guest_count",
     ]
 
+    def has_add_permission(self, request, obj=None):
+        return False
+
     def time_alive(self, obj: SessionLog):
         delta = timezone.now() - obj.created_on
         seconds = int(delta.total_seconds())
