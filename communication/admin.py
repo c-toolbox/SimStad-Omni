@@ -69,7 +69,9 @@ class SessionAdmin(admin.ModelAdmin):
 
 @admin.register(SessionLog)
 class SessionLogAdmin(admin.ModelAdmin):
+    list_filter = ["service"]
     list_display = [
+        "id",
         "started_at",
         "ended_at",
         "time_alive",
