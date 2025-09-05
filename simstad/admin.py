@@ -233,7 +233,7 @@ class RasterAdmin(TranslationAdmin):
                         counter += 1
 
                     raster = Raster(
-                        key=name,
+                        key=name[:32],
                         name_en=base_name.replace("_", " ").title(),
                         name_sv=base_name.replace("_", " ").title(),
                         city=city,
