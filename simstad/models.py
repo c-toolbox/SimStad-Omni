@@ -191,7 +191,7 @@ class Raster(models.Model):
     changed_at = models.DateTimeField(auto_now=True)
 
     key = models.CharField(
-        max_length=32,
+        max_length=64,
         unique=True,
         help_text="Unique identifier for the raster",
     )

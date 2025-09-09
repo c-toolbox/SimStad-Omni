@@ -226,14 +226,14 @@ class RasterAdmin(TranslationAdmin):
                 for image in images:
                     # Find a unique key for the raster
                     base_name = image.name.rsplit(".", 1)[0]  # Use the image filename as base
-                    name = base_name
+                    key = base_name[:64]
                     counter = 1
-                    while Raster.objects.filter(key=name).exists():
-                        name = f"{base_name}_{counter}"
+                    while Raster.objects.filter(key=key).exists():
+                        key = f"{base_name}_{counter}"
                         counter += 1
 
                     raster = Raster(
-                        key=name[:32],
+                        key=key,
                         name_en=base_name.replace("_", " ").title(),
                         name_sv=base_name.replace("_", " ").title(),
                         city=city,
