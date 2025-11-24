@@ -16,6 +16,12 @@ class LegendSerializer(serializers.ModelSerializer):
         fields = ["title", "entries"]
 
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ["name"]
+
+
 class RasterSerializer(serializers.ModelSerializer):
     tags = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
 

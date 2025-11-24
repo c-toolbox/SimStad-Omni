@@ -3,8 +3,14 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import CitySerializer, CollectionSerializer, ScenarioSerializer, RasterSerializer
-from .models import City, Collection, Scenario, Raster
+from .serializers import (
+    CitySerializer,
+    CollectionSerializer,
+    ScenarioSerializer,
+    RasterSerializer,
+    TagSerializer,
+)
+from .models import City, Collection, Scenario, Raster, Tag
 
 
 def index(request):
@@ -44,6 +50,13 @@ def get_collection(request, collection_key):
 # --- Scenario --- #
 
 @api_view(["GET"])
+def get_scenarios(request):
+    instances = Scenario.objects.all()
+    serializer = ScenarioSerializer(instances, many=True)
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
 def get_scenario(request, scenario_key):
     try:
         instance = Scenario.objects.get(key=scenario_key)
@@ -57,6 +70,13 @@ def get_scenario(request, scenario_key):
 # --- Raster --- #
 
 @api_view(["GET"])
+def get_rasters(request):
+    instances = Raster.objects.all()
+    serializer = RasterSerializer(instances, many=True)
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
 def get_raster(request, raster_key):
     try:
         instance = Raster.objects.get(key=raster_key)
@@ -64,4 +84,13 @@ def get_raster(request, raster_key):
         return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
 
     serializer = RasterSerializer(instance)
+    return Response(serializer.data)
+
+
+# --- Tag --- #
+
+@api_view(["GET"])
+def get_tags(request):
+    instances = Tag.objects.all()
+    serializer = TagSerializer(instances, many=True)
     return Response(serializer.data)

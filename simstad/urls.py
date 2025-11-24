@@ -6,6 +6,9 @@ urlpatterns = [
 
 	path("get_city/<str:city_key>/", views.get_city),
 	path("get_collection/<str:collection_key>/", views.get_collection),
+	path("get_scenarios/", views.get_scenarios),
 	path("get_scenario/<str:scenario_key>/", views.get_scenario),
+	path("get_rasters/", views.get_rasters),
 	path("get_raster/<str:raster_key>/", views.get_raster),
+	path("get_tags/", views.get_tags),
 ]
