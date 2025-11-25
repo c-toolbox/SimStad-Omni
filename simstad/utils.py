@@ -1,5 +1,5 @@
-import uuid
 from PIL import Image
+from django.core.exceptions import ValidationError
 
 
 # Photoshop the full raster image into a 256x256 thumbnail
@@ -34,3 +34,15 @@ def generate_minimap(image_path):
 
         final_image = scaled_image.copy()
     return final_image
+
+
+# Checks that the uploaded image is of a particular size
+def ensure_image_size(image_path):
+    if image_path:
+        img = Image.open(image_path)
+        width, height = img.size
+
+        if width != 128 or height != 64:
+            raise ValidationError(
+                f"Image must be exactly 128×64 px, but is {width}×{height}."
+            )

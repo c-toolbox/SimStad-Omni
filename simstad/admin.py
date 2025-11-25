@@ -13,6 +13,7 @@ from .models import (
     Raster,
     Tag,
     Legend,
+    LegendSymbol,
     LegendEntry,
 )
 from modeltranslation.admin import TranslationAdmin, TranslationTabularInline
@@ -225,7 +226,8 @@ class RasterAdmin(TranslationAdmin):
 
                 for image in images:
                     # Find a unique key for the raster
-                    base_name = image.name.rsplit(".", 1)[0]  # Use the image filename as base
+                    # Use the image filename as base
+                    base_name = image.name.rsplit(".", 1)[0]
                     key = base_name[:64]
                     counter = 1
                     while Raster.objects.filter(key=key).exists():
@@ -284,7 +286,7 @@ class TagAdmin(TranslationAdmin):
 class LegendEntryInline(TranslationTabularInline):
     model = LegendEntry
     extra = 0
-    fields = ["text", "color", "type"]
+    fields = ["text", "color", "symbol"]
 
 
 @admin.register(Legend)
@@ -292,6 +294,7 @@ class LegendAdmin(TranslationAdmin):
     change_list_template = "admin/legend_change_list.html"
     inlines = [LegendEntryInline]
     list_display = [
+        "key",
         "title",
         "scenarios",
         "colors",
@@ -299,6 +302,7 @@ class LegendAdmin(TranslationAdmin):
         "changed_at",
     ]
     fields = [
+        "key",
         "title",
     ]
 
@@ -328,23 +332,30 @@ class LegendAdmin(TranslationAdmin):
         if request.method == "POST":
             form = LegendJsonImportForm(request.POST)
             if form.is_valid():
-                title = form.cleaned_data["title"]
+                key = form.cleaned_data["key"]
                 json_data = form.cleaned_data["json_data"]
                 try:
                     entries = json.loads(json_data)
-                    legend = Legend.objects.create(title_en=title, title_sv=title)
+                    legend = Legend.objects.create(key=key)
+
                     for idx, entry in enumerate(entries):
+                        # Find symbol in database, if possible
+                        type_name = entry.get("type", "rectangle")
+                        symbol = LegendSymbol.objects.filter(name__iexact=type_name).first()
+                        # if symbol is None:
+                        #     symbol = LegendSymbol.objects.first()
+
                         LegendEntry.objects.create(
                             legend=legend,
                             text_en=entry.get("text", ""),
                             text_sv=entry.get("text", ""),
                             color=entry.get("color", "#FFFFFF"),
-                            type=entry.get("type", "rect"),
+                            symbol=symbol,
                             order=idx,
                         )
                     self.message_user(
                         request,
-                        f"Legend '{title}' imported with {len(entries)} entries.",
+                        f"Legend '{key}' imported with {len(entries)} entries.",
                     )
                     return redirect(
                         reverse("admin:simstad_legend_change", args=[legend.id])
@@ -362,3 +373,25 @@ class LegendAdmin(TranslationAdmin):
             form=form,
         )
         return render(request, "admin/legend_json_import.html", context)
+
+
+@admin.register(LegendSymbol)
+class LegendSymbolAdmin(admin.ModelAdmin):
+    model = LegendSymbol
+    extra = 0
+    list_display = [
+        "name",
+        "image_preview",
+        "created_at",
+        "changed_at",
+    ]
+    fields = ["name", "image"]
+
+    @admin.display(description="Image")
+    def image_preview(self, obj: LegendSymbol):
+        if obj.image and obj.image:
+            return format_html(
+                '<img src="{}" height="32" />',
+                obj.image.url,
+            )
+        return ""

@@ -1,14 +1,14 @@
 import os
 from django.db import models
 from colorfield.fields import ColorField
-from .utils import generate_minimap, generate_thumbnail
+from .utils import generate_minimap, generate_thumbnail, ensure_image_size
 
 
 # A VisualCity installation
 class City(models.Model):
     class Meta:
         verbose_name = "City exhibit"
-        verbose_name_plural = "  City exhibits"
+        verbose_name_plural = "   City exhibits"
 
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
@@ -52,7 +52,7 @@ class City(models.Model):
 class Collection(models.Model):
     class Meta:
         verbose_name = "Collection"
-        verbose_name_plural = "  Collections"
+        verbose_name_plural = "   Collections"
 
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
@@ -111,7 +111,7 @@ class CollectionScenario(models.Model):
 class Scenario(models.Model):
     class Meta:
         verbose_name = "Scenario"
-        verbose_name_plural = "  Scenarios"
+        verbose_name_plural = "   Scenarios"
 
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
@@ -185,7 +185,7 @@ def upload_raster(instance, filename):
 class Raster(models.Model):
     class Meta:
         verbose_name = "Raster"
-        verbose_name_plural = " Rasters"
+        verbose_name_plural = "  Rasters"
 
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
@@ -298,15 +298,43 @@ class Tag(models.Model):
 class Legend(models.Model):
     class Meta:
         verbose_name = "Legend"
-        verbose_name_plural = "Legends"
+        verbose_name_plural = " Legends"
 
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
 
+    key = models.CharField(
+        max_length=64,
+        # unique=True,
+        null=True,
+        blank=True,
+        help_text="Unique identifier for the legend",
+    )
+
     title = models.CharField(max_length=32)
 
     def __str__(self):
-        return self.title
+        return str(self.key)
+
+
+class LegendSymbol(models.Model):
+    class Meta:
+        verbose_name = "Legend Symbol"
+        verbose_name_plural = "Legend Symbols"
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    changed_at = models.DateTimeField(auto_now=True)
+
+    name = models.CharField(max_length=32)
+
+    image = models.ImageField(upload_to="legendsymbols/")
+
+    def clean(self):
+        super().clean()
+        ensure_image_size(self.image)
+
+    def __str__(self):
+        return self.name
 
 
 class LegendEntry(models.Model):
@@ -316,12 +344,9 @@ class LegendEntry(models.Model):
     legend = models.ForeignKey(Legend, on_delete=models.CASCADE, related_name="entries")
     text = models.CharField(max_length=64)
     color = ColorField(default="#FFFFFF")
-    TYPE_CHOICES = [
-        ("rect", "Rectangle"),
-        ("circle", "Circle"),
-        ("line", "Line"),
-    ]
-    type = models.CharField(max_length=10, choices=TYPE_CHOICES, default="rect")
+    symbol = models.ForeignKey(
+        LegendSymbol, null=True, blank=True, on_delete=models.PROTECT
+    )
     order = models.PositiveIntegerField(default=0, editable=False, db_index=True)
 
     def __str__(self):
