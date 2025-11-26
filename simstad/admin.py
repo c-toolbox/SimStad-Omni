@@ -4,6 +4,8 @@ from django.utils.html import format_html
 from django.shortcuts import render, redirect
 from django.urls import path, reverse
 from django.utils import timezone
+from django.db import models
+from django.forms.widgets import Textarea
 from .models import (
     City,
     Collection,
@@ -196,6 +198,7 @@ class RasterAdmin(TranslationAdmin):
     fields = [
         "key",
         "name",
+        "notes",
         "city",
         "tags",
         "image",
@@ -208,6 +211,9 @@ class RasterAdmin(TranslationAdmin):
         "thumbnail",
         "image_preview",
     ]
+    formfield_overrides = {
+        models.TextField: {"widget": Textarea(attrs={"rows": 3})},
+    }
 
     @admin.display(description="Scenario")
     def scenario(self, obj: Raster):

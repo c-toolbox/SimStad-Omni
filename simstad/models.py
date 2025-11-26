@@ -9,6 +9,7 @@ class City(models.Model):
     class Meta:
         verbose_name = "City exhibit"
         verbose_name_plural = "   City exhibits"
+        ordering = ["key"]
 
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
@@ -53,6 +54,7 @@ class Collection(models.Model):
     class Meta:
         verbose_name = "Collection"
         verbose_name_plural = "   Collections"
+        ordering = ["key"]
 
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
@@ -112,6 +114,7 @@ class Scenario(models.Model):
     class Meta:
         verbose_name = "Scenario"
         verbose_name_plural = "   Scenarios"
+        ordering = ["key"]
 
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
@@ -193,6 +196,7 @@ class Raster(models.Model):
     class Meta:
         verbose_name = "Raster"
         verbose_name_plural = "  Rasters"
+        ordering = ["key"]
 
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
@@ -208,6 +212,12 @@ class Raster(models.Model):
         help_text="Name of the raster",
     )
 
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Optional description about the raster — what data it contains, its source, etc.",
+    )
+
     city = models.ForeignKey(
         City,
         on_delete=models.CASCADE,
@@ -219,7 +229,7 @@ class Raster(models.Model):
         "Tag",
         related_name="rasters",
         blank=True,
-        help_text="Tags associated with the raster",
+        help_text="Tags associated with the raster.",
     )
 
     image = models.ImageField(upload_to=upload_raster)
@@ -288,6 +298,7 @@ class Tag(models.Model):
     class Meta:
         verbose_name = "Tag"
         verbose_name_plural = "Tags"
+        ordering = ["name"]
 
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
@@ -306,6 +317,7 @@ class Legend(models.Model):
     class Meta:
         verbose_name = "Legend"
         verbose_name_plural = " Legends"
+        ordering = ["key"]
 
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
@@ -316,7 +328,7 @@ class Legend(models.Model):
         help_text="Unique identifier for the legend",
     )
 
-    title = models.CharField(max_length=32)
+    title = models.CharField(max_length=64)
 
     def __str__(self):
         return str(self.key)
@@ -326,6 +338,7 @@ class LegendSymbol(models.Model):
     class Meta:
         verbose_name = "Legend Symbol"
         verbose_name_plural = "Legend Symbols"
+        ordering = ["name"]
 
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
