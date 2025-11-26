@@ -313,7 +313,6 @@ class Legend(models.Model):
     key = models.CharField(
         max_length=64,
         unique=True,
-        default=lambda: uuid.uuid4().hex,
         help_text="Unique identifier for the legend",
     )
 

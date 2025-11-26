@@ -342,8 +342,8 @@ class LegendAdmin(TranslationAdmin):
                         # Find symbol in database, if possible
                         type_name = entry.get("type", "rectangle")
                         symbol = LegendSymbol.objects.filter(name__iexact=type_name).first()
-                        # if symbol is None:
-                        #     symbol = LegendSymbol.objects.first()
+                        if symbol is None:
+                            symbol = LegendSymbol.objects.first()
 
                         LegendEntry.objects.create(
                             legend=legend,
