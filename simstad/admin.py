@@ -135,6 +135,7 @@ class ScenarioAdmin(TranslationAdmin):
         "city",
         "legend",
         "legend_image",
+        "legend_image_source",
     ]
 
     @admin.display(description="Collection")
