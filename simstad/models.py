@@ -1,4 +1,4 @@
-import os
+import os, uuid
 from django.db import models
 from colorfield.fields import ColorField
 from .utils import generate_minimap, generate_thumbnail, ensure_image_size
@@ -313,6 +313,7 @@ class Legend(models.Model):
     key = models.CharField(
         max_length=64,
         unique=True,
+        default=lambda: uuid.uuid4().hex,
         help_text="Unique identifier for the legend",
     )
 
