@@ -17,6 +17,7 @@ pillow = "*"
 django-cleanup = "*"
 django-colorfield = "*"
 django-modeltranslation = "*"
+django-admin-sortable2 = "*"
 
 [dev-packages]
 

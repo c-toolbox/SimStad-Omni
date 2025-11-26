@@ -17,6 +17,7 @@ from .models import (
     LegendEntry,
 )
 from modeltranslation.admin import TranslationAdmin, TranslationTabularInline
+from adminsortable2.admin import SortableAdminBase, SortableInlineAdminMixin
 from .forms import BulkUploadForm, LegendJsonImportForm
 
 
@@ -61,7 +62,7 @@ class CityAdmin(TranslationAdmin):
 # --- Collection --- #
 
 
-class CollectionScenarioInline(admin.TabularInline):
+class CollectionScenarioInline(SortableInlineAdminMixin, admin.TabularInline):
     verbose_name = "Scenario"
     verbose_name_plural = "Scenarios"
     model = CollectionScenario
@@ -71,7 +72,7 @@ class CollectionScenarioInline(admin.TabularInline):
 
 
 @admin.register(Collection)
-class CollectionAdmin(TranslationAdmin):
+class CollectionAdmin(SortableAdminBase, TranslationAdmin):
     inlines = [CollectionScenarioInline]
     list_filter = ["city"]
     list_display = [
@@ -105,7 +106,7 @@ class CollectionAdmin(TranslationAdmin):
 # --- Scenario --- #
 
 
-class ScenarioRasterInline(admin.TabularInline):
+class ScenarioRasterInline(SortableInlineAdminMixin, admin.TabularInline):
     verbose_name = "Raster"
     verbose_name_plural = "Rasters"
     model = ScenarioRaster
@@ -115,7 +116,7 @@ class ScenarioRasterInline(admin.TabularInline):
 
 
 @admin.register(Scenario)
-class ScenarioAdmin(TranslationAdmin):
+class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
     inlines = [ScenarioRasterInline]
     list_filter = ["city", "collections"]
     list_display = [
@@ -125,6 +126,7 @@ class ScenarioAdmin(TranslationAdmin):
         "collection",
         "raster_count",
         "legend_type",
+        "rasters_preview",
         "created_at",
         "changed_at",
     ]
@@ -154,6 +156,24 @@ class ScenarioAdmin(TranslationAdmin):
             return obj.legend_image
         else:
             return None
+
+    @admin.display(description="Rasters Preview")
+    def rasters_preview(self, obj: Scenario):
+        rasters = obj.rasters.all()
+        if not rasters:
+            return ""
+
+        # Get all rasters with their order
+        scenario_rasters = ScenarioRaster.objects.filter(scenario=obj).order_by("order")
+        html = '<div style="position: relative; height: 64px;">'
+
+        for scenario_raster in scenario_rasters:
+            raster = scenario_raster.raster
+            if raster.thumbnail:
+                html += f'<img src="{raster.thumbnail.url}" style="position: absolute; top: 0; left: 0; height: 64px;" />'
+
+        html += "</div>"
+        return format_html(html)
 
 
 # --- Raster --- #
@@ -284,14 +304,14 @@ class TagAdmin(TranslationAdmin):
 # --- Legend --- #
 
 
-class LegendEntryInline(TranslationTabularInline):
+class LegendEntryInline(SortableInlineAdminMixin, TranslationTabularInline):
     model = LegendEntry
     extra = 0
     fields = ["text", "color", "symbol"]
 
 
 @admin.register(Legend)
-class LegendAdmin(TranslationAdmin):
+class LegendAdmin(SortableAdminBase, TranslationAdmin):
     change_list_template = "admin/legend_change_list.html"
     inlines = [LegendEntryInline]
     list_display = [

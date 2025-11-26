@@ -1,11 +1,28 @@
 from rest_framework import serializers
-from .models import City, Collection, Scenario, Raster, Tag, Legend, LegendEntry
+from .models import (
+    City,
+    Collection,
+    Scenario,
+    Raster,
+    Tag,
+    Legend,
+    LegendEntry,
+    LegendSymbol,
+)
+
+
+class LegendSymbolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LegendSymbol
+        fields = ["name", "image"]
 
 
 class LegendEntrySerializer(serializers.ModelSerializer):
+    symbol = LegendSymbolSerializer(read_only=True)
+
     class Meta:
         model = LegendEntry
-        fields = ["text", "color", "type", "order"]
+        fields = ["text", "color", "symbol", "order"]
 
 
 class LegendSerializer(serializers.ModelSerializer):
@@ -13,7 +30,7 @@ class LegendSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Legend
-        fields = ["title", "entries"]
+        fields = ["key", "title", "entries"]
 
 
 class TagSerializer(serializers.ModelSerializer):

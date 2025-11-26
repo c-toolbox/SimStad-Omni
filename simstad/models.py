@@ -102,7 +102,7 @@ class CollectionScenario(models.Model):
 
     collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
     scenario = models.ForeignKey("Scenario", on_delete=models.CASCADE)
-    order = models.PositiveIntegerField(default=0, editable=False, db_index=True)
+    order = models.PositiveIntegerField(default=0, editable=True, db_index=True)
 
     def __str__(self):
         return self.scenario.key
@@ -177,7 +177,7 @@ class ScenarioRaster(models.Model):
 
     scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE)
     raster = models.ForeignKey("Raster", on_delete=models.CASCADE)
-    order = models.PositiveIntegerField(default=0, editable=False, db_index=True)
+    order = models.PositiveIntegerField(default=0, editable=True, db_index=True)
 
     def __str__(self):
         return self.raster.key
@@ -350,7 +350,7 @@ class LegendEntry(models.Model):
     text = models.CharField(max_length=64)
     color = ColorField(default="#FFFFFF")
     symbol = models.ForeignKey(LegendSymbol, on_delete=models.PROTECT)
-    order = models.PositiveIntegerField(default=0, editable=False, db_index=True)
+    order = models.PositiveIntegerField(default=0, editable=True, db_index=True)
 
     def __str__(self):
         return self.text

@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "simstad",
     "django_cleanup.apps.CleanupConfig",
     "colorfield",
+    "adminsortable2",
 ]
 
 ASGI_APPLICATION = "omni.asgi.application"

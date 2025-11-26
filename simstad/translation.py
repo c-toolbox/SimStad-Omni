@@ -14,7 +14,7 @@ class CollectionTranslationOptions(TranslationOptions):
 
 @register(Scenario)
 class ScenarioTranslationOptions(TranslationOptions):
-    fields = ("name", "description")
+    fields = ("name", "description", "legend_image_source")
 
 
 @register(Raster)
