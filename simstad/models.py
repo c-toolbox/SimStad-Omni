@@ -159,6 +159,13 @@ class Scenario(models.Model):
         help_text="Image file for the legend. Provide either a legend or a legend image, not both.",
     )
 
+    legend_image_source = models.CharField(
+        max_length=256,
+        null=True,
+        blank=True,
+        help_text="Source information for the legend image.",
+    )
+
     def __str__(self):
         return self.name
 
@@ -305,9 +312,7 @@ class Legend(models.Model):
 
     key = models.CharField(
         max_length=64,
-        # unique=True,
-        null=True,
-        blank=True,
+        unique=True,
         help_text="Unique identifier for the legend",
     )
 
@@ -344,9 +349,7 @@ class LegendEntry(models.Model):
     legend = models.ForeignKey(Legend, on_delete=models.CASCADE, related_name="entries")
     text = models.CharField(max_length=64)
     color = ColorField(default="#FFFFFF")
-    symbol = models.ForeignKey(
-        LegendSymbol, null=True, blank=True, on_delete=models.PROTECT
-    )
+    symbol = models.ForeignKey(LegendSymbol, on_delete=models.PROTECT)
     order = models.PositiveIntegerField(default=0, editable=False, db_index=True)
 
     def __str__(self):
