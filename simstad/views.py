@@ -1,5 +1,6 @@
 from django.http import JsonResponse, Http404
 from django.shortcuts import render
+from django.utils.translation import activate
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -8,9 +9,10 @@ from .serializers import (
     CollectionSerializer,
     ScenarioSerializer,
     RasterSerializer,
+    LegendSerializer,
     TagSerializer,
 )
-from .models import City, Collection, Scenario, Raster, Tag
+from .models import City, Collection, Scenario, Raster, Legend, Tag
 
 
 def index(request):
@@ -87,6 +89,19 @@ def get_raster(request, raster_key):
     return Response(serializer.data)
 
 
+# --- Legend --- #
+
+@api_view(["GET"])
+def get_legend(request, legend_key):
+    try:
+        instance = Legend.objects.get(key=legend_key)
+    except Legend.DoesNotExist:
+        return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = LegendSerializer(instance)
+    return Response(serializer.data)
+
+
 # --- Tag --- #
 
 @api_view(["GET"])
@@ -94,3 +109,23 @@ def get_tags(request):
     instances = Tag.objects.all()
     serializer = TagSerializer(instances, many=True)
     return Response(serializer.data)
+
+
+# --- Legend Page --- #
+
+def legend_page(request, scenario_key):
+    # Set the html language
+    activate(request.GET.get("language", "sv"))
+
+    if Scenario.objects.filter(key=scenario_key).exists():
+        scenario = Scenario.objects.get(key=scenario_key)
+        context = {"scenario": scenario}
+    else:
+        context = {
+            "scenario": {
+                "name": scenario_key,
+                "description": f'Scenario "{scenario_key}" could not be found.',
+            }
+        }
+
+    return render(request, "simstad/legend.html", context)

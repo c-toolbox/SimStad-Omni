@@ -163,7 +163,7 @@ class Scenario(models.Model):
     )
 
     legend_image_source = models.CharField(
-        max_length=256,
+        max_length=128,
         null=True,
         blank=True,
         help_text="Source information for the legend image.",
