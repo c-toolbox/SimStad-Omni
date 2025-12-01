@@ -303,6 +303,14 @@ class Tag(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
 
+    key = models.CharField(
+        max_length=32,
+        unique=False,
+        null=True,
+        blank=True,
+        help_text="Unique identifier for the tag",
+    )
+
     name = models.CharField(
         max_length=32,
         unique=True,
