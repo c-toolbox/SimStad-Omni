@@ -305,9 +305,7 @@ class Tag(models.Model):
 
     key = models.CharField(
         max_length=32,
-        unique=False,
-        null=True,
-        blank=True,
+        unique=True,
         help_text="Unique identifier for the tag",
     )
 

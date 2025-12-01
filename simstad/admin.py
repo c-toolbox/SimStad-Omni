@@ -296,12 +296,14 @@ class RasterAdmin(TranslationAdmin):
 @admin.register(Tag)
 class TagAdmin(TranslationAdmin):
     list_display = [
-        "name",
+        "key",
+        "name_en",
+        "name_sv",
         "raster_count",
         "created_at",
         "changed_at",
     ]
-    fields = ["name"]
+    fields = ["key", "name"]
 
     @admin.display(description="Rasters")
     def raster_count(self, obj: Tag):
