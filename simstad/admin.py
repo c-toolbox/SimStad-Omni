@@ -125,6 +125,7 @@ class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
     list_display = [
         "key",
         "name",
+        "short_name",
         "city",
         "collection",
         "raster_count",
@@ -136,6 +137,7 @@ class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
     fields = [
         "key",
         "name",
+        "short_name",
         "description",
         "city",
         "legend",
@@ -222,7 +224,7 @@ class RasterAdmin(TranslationAdmin):
 
     @admin.display(description="Tags")
     def tag_list(self, obj: Raster):
-        return ", ".join([tag.name for tag in obj.tags.all()])
+        return ", ".join([tag.key for tag in obj.tags.all()])
 
     @admin.display(description="Image")
     def image_preview(self, obj: Raster):
@@ -410,12 +412,12 @@ class LegendSymbolAdmin(admin.ModelAdmin):
     model = LegendSymbol
     extra = 0
     list_display = [
-        "name",
+        "key",
         "image_preview",
         "created_at",
         "changed_at",
     ]
-    fields = ["name", "image"]
+    fields = ["key", "image"]
 
     @admin.display(description="Image")
     def image_preview(self, obj: LegendSymbol):

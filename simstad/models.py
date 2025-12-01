@@ -46,7 +46,7 @@ class City(models.Model):
     )
 
     def __str__(self):
-        return self.name
+        return self.key
 
 
 # A collection of scenarios that follow a theme
@@ -94,7 +94,7 @@ class Collection(models.Model):
     )
 
     def __str__(self):
-        return self.name
+        return self.key
 
 
 class CollectionScenario(models.Model):
@@ -128,6 +128,13 @@ class Scenario(models.Model):
     name = models.CharField(
         max_length=64,
         help_text="Name of the scenario",
+    )
+
+    short_name = models.CharField(
+        max_length=32,
+        blank=True,
+        default="",
+        help_text="Optional short name of the scenario, used for tabs in the UI",
     )
 
     description = models.TextField(
@@ -170,7 +177,7 @@ class Scenario(models.Model):
     )
 
     def __str__(self):
-        return self.name
+        return self.key
 
 
 class ScenarioRaster(models.Model):
@@ -291,7 +298,7 @@ class Raster(models.Model):
         return os.path.splitext(self.image.name)[1].lower()
 
     def __str__(self):
-        return self.name
+        return self.key
 
 
 class Tag(models.Model):
@@ -316,7 +323,7 @@ class Tag(models.Model):
     )
 
     def __str__(self):
-        return self.name
+        return self.key
 
 
 class Legend(models.Model):
@@ -337,19 +344,19 @@ class Legend(models.Model):
     title = models.CharField(max_length=64)
 
     def __str__(self):
-        return str(self.key)
+        return self.key
 
 
 class LegendSymbol(models.Model):
     class Meta:
         verbose_name = "Legend Symbol"
         verbose_name_plural = "Legend Symbols"
-        ordering = ["name"]
+        ordering = ["key"]
 
     created_at = models.DateTimeField(auto_now_add=True)
     changed_at = models.DateTimeField(auto_now=True)
 
-    name = models.CharField(max_length=32)
+    key = models.CharField(max_length=32)
 
     image = models.ImageField(upload_to="legendsymbols/")
 
@@ -358,7 +365,7 @@ class LegendSymbol(models.Model):
         ensure_image_size(self.image)
 
     def __str__(self):
-        return self.name
+        return self.key
 
 
 class LegendEntry(models.Model):

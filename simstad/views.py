@@ -10,7 +10,6 @@ from .serializers import (
     ScenarioSerializer,
     RasterSerializer,
     LegendSerializer,
-    TagSerializer,
 )
 from .models import City, Collection, Scenario, Raster, Legend, Tag, LocalizedString
 
@@ -25,6 +24,14 @@ def index(request):
 
 # --- City --- #
 
+
+@api_view(["GET"])
+def get_cities(request):
+    instances = City.objects.all()
+    serializer = CitySerializer(instances, many=True)
+    return Response(serializer.data)
+
+
 @api_view(["GET"])
 def get_city(request, city_key):
     try:
@@ -38,6 +45,14 @@ def get_city(request, city_key):
 
 # --- Collection --- #
 
+
+@api_view(["GET"])
+def get_collections(request):
+    instances = Collection.objects.all()
+    serializer = CollectionSerializer(instances, many=True)
+    return Response(serializer.data)
+
+
 @api_view(["GET"])
 def get_collection(request, collection_key):
     try:
@@ -50,6 +65,7 @@ def get_collection(request, collection_key):
 
 
 # --- Scenario --- #
+
 
 @api_view(["GET"])
 def get_scenarios(request):
@@ -71,6 +87,7 @@ def get_scenario(request, scenario_key):
 
 # --- Raster --- #
 
+
 @api_view(["GET"])
 def get_rasters(request):
     instances = Raster.objects.all()
@@ -91,6 +108,14 @@ def get_raster(request, raster_key):
 
 # --- Legend --- #
 
+
+@api_view(["GET"])
+def get_legends(request):
+    instances = Legend.objects.all()
+    serializer = LegendSerializer(instances, many=True)
+    return Response(serializer.data)
+
+
 @api_view(["GET"])
 def get_legend(request, legend_key):
     try:
@@ -101,17 +126,6 @@ def get_legend(request, legend_key):
     serializer = LegendSerializer(instance)
     return Response(serializer.data)
 
-
-# --- Tag --- #
-
-@api_view(["GET"])
-def get_tags(request):
-    instances = Tag.objects.all()
-    serializer = TagSerializer(instances, many=True)
-    return Response(serializer.data)
-
-
-# --- Legend Page --- #
 
 def legend_page(request, scenario_key):
     # Set the html language
@@ -132,6 +146,7 @@ def legend_page(request, scenario_key):
 
 
 # --- Localization --- #
+
 
 @api_view(["GET"])
 def get_localization(request):
@@ -168,5 +183,9 @@ def get_localization(request):
         # Add LegendEntry translations
         for idx, entry in enumerate(legend.entries.all()):
             localization_dict[f"legend_{legend.key}_{idx}_text"] = entry.text
+
+    # Add Tag translations
+    for tag in Tag.objects.all():
+        localization_dict[f"tag_{tag.key}"] = tag.name
 
     return Response(localization_dict)

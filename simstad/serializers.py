@@ -14,11 +14,11 @@ from .models import (
 class LegendSymbolSerializer(serializers.ModelSerializer):
     class Meta:
         model = LegendSymbol
-        fields = ["name", "image"]
+        fields = ["key", "image"]
 
 
 class LegendEntrySerializer(serializers.ModelSerializer):
-    symbol = LegendSymbolSerializer(read_only=True)
+    symbol = serializers.SlugRelatedField(read_only=True, slug_field="key")
 
     class Meta:
         model = LegendEntry
@@ -33,14 +33,8 @@ class LegendSerializer(serializers.ModelSerializer):
         fields = ["key", "title", "entries"]
 
 
-class TagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tag
-        fields = ["name"]
-
-
 class RasterSerializer(serializers.ModelSerializer):
-    tags = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
+    tags = serializers.SlugRelatedField(many=True, read_only=True, slug_field="key")
 
     class Meta:
         model = Raster
@@ -56,8 +50,8 @@ class RasterSerializer(serializers.ModelSerializer):
 
 
 class ScenarioSerializer(serializers.ModelSerializer):
-    legend = LegendSerializer(many=False, read_only=True)
-    rasters = RasterSerializer(many=True, read_only=True)
+    legend = serializers.SlugRelatedField(many=False, read_only=True, slug_field="key")
+    rasters = serializers.SlugRelatedField(many=True, read_only=True, slug_field="key")
 
     class Meta:
         model = Scenario
@@ -65,7 +59,9 @@ class ScenarioSerializer(serializers.ModelSerializer):
 
 
 class CollectionSerializer(serializers.ModelSerializer):
-    scenarios = ScenarioSerializer(many=True, read_only=True)
+    scenarios = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="key"
+    )
 
     class Meta:
         model = Collection
@@ -73,7 +69,9 @@ class CollectionSerializer(serializers.ModelSerializer):
 
 
 class CitySerializer(serializers.ModelSerializer):
-    collections = CollectionSerializer(many=True, read_only=True)
+    collections = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="key"
+    )
 
     class Meta:
         model = City
