@@ -17,6 +17,7 @@ from .models import (
     Legend,
     LegendSymbol,
     LegendEntry,
+    LocalizedString,
 )
 from modeltranslation.admin import TranslationAdmin, TranslationTabularInline
 from adminsortable2.admin import SortableAdminBase, SortableInlineAdminMixin
@@ -422,3 +423,24 @@ class LegendSymbolAdmin(admin.ModelAdmin):
                 obj.image.url,
             )
         return ""
+
+
+# --- LocalizedString --- #
+
+
+@admin.register(LocalizedString)
+class LocalizedStringAdmin(TranslationAdmin):
+    list_display = [
+        "key",
+        "text_en",
+        "text_sv",
+        "created_at",
+        "changed_at",
+    ]
+    fields = [
+        "key",
+        "text",
+    ]
+    formfield_overrides = {
+        models.TextField: {"widget": Textarea(attrs={"rows": 4})},
+    }

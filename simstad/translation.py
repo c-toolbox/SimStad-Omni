@@ -1,5 +1,5 @@
 from modeltranslation.translator import register, TranslationOptions
-from .models import City, Collection, Scenario, Raster, Tag, Legend, LegendEntry
+from .models import City, Collection, Scenario, Raster, Tag, Legend, LegendEntry, LocalizedString
 
 
 @register(City)
@@ -34,4 +34,9 @@ class LegendTranslationOptions(TranslationOptions):
 
 @register(LegendEntry)
 class LegendEntryTranslationOptions(TranslationOptions):
+    fields = ("text",)
+
+
+@register(LocalizedString)
+class LocalizedStringTranslationOptions(TranslationOptions):
     fields = ("text",)

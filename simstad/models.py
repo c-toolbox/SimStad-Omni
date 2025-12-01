@@ -367,3 +367,25 @@ class LegendEntry(models.Model):
 
     def __str__(self):
         return self.text
+
+
+# Localized strings for UI text that doesn't belong to any specific object
+class LocalizedString(models.Model):
+    class Meta:
+        verbose_name = "Localize String"
+        verbose_name_plural = "Localized Strings"
+        ordering = ["key"]
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    changed_at = models.DateTimeField(auto_now=True)
+
+    key = models.CharField(
+        max_length=128,
+        unique=True,
+        help_text="Unique identifier for the localized string",
+    )
+
+    text = models.TextField(help_text="The localized text")
+
+    def __str__(self):
+        return self.key

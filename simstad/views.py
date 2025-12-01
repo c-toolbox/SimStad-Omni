@@ -12,7 +12,7 @@ from .serializers import (
     LegendSerializer,
     TagSerializer,
 )
-from .models import City, Collection, Scenario, Raster, Legend, Tag
+from .models import City, Collection, Scenario, Raster, Legend, Tag, LocalizedString
 
 
 def index(request):
@@ -129,3 +129,44 @@ def legend_page(request, scenario_key):
         }
 
     return render(request, "simstad/legend.html", context)
+
+
+# --- Localization --- #
+
+@api_view(["GET"])
+def get_localization(request):
+    language = request.GET.get("language", "sv")
+    activate(language)
+
+    localization_dict = {}
+
+    # Add LocalizedString entries
+    for localizedString in LocalizedString.objects.all():
+        localization_dict[localizedString.key] = localizedString.text
+
+    # Add City translations
+    for city in City.objects.all():
+        localization_dict[f"city_{city.key}_name"] = city.name
+
+    # Add Collection translations
+    for collection in Collection.objects.all():
+        localization_dict[f"collection_{collection.key}_name"] = collection.name
+
+    # Add Scenario translations
+    for scenario in Scenario.objects.all():
+        localization_dict[f"scenario_{scenario.key}_name"] = scenario.name
+        localization_dict[f"scenario_{scenario.key}_description"] = scenario.description
+        if scenario.legend_image_source:
+            localization_dict[f"scenario_{scenario.key}_legend_image_source"] = (
+                scenario.legend_image_source
+            )
+
+    # Add Legend translations
+    for legend in Legend.objects.all():
+        localization_dict[f"legend_{legend.key}_title"] = legend.title
+
+        # Add LegendEntry translations
+        for idx, entry in enumerate(legend.entries.all()):
+            localization_dict[f"legend_{legend.key}_{idx}_text"] = entry.text
+
+    return Response(localization_dict)
