@@ -125,7 +125,6 @@ class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
     list_display = [
         "key",
         "name",
-        "short_name",
         "city",
         "collection",
         "raster_count",
