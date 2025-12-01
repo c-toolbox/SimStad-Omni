@@ -40,8 +40,8 @@ class RasterSerializer(serializers.ModelSerializer):
         model = Raster
         fields = [
             "key",
-            "name_en",
-            "name_sv",
+            "name",
+            "notes",
             "image",
             "minimap",
             "thumbnail",
@@ -55,7 +55,14 @@ class ScenarioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Scenario
-        fields = ["key", "name", "description", "legend_image", "legend", "rasters"]
+        fields = [
+            "key",
+            "name",
+            "description",
+            "legend_image",
+            "legend",
+            "rasters",
+        ]
 
 
 class CollectionSerializer(serializers.ModelSerializer):

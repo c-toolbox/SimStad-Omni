@@ -349,8 +349,8 @@ class Legend(models.Model):
 
 class LegendSymbol(models.Model):
     class Meta:
-        verbose_name = "Legend Symbol"
-        verbose_name_plural = "Legend Symbols"
+        verbose_name = "Symbol"
+        verbose_name_plural = " Symbols"
         ordering = ["key"]
 
     created_at = models.DateTimeField(auto_now_add=True)

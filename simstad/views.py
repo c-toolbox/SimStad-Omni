@@ -1,6 +1,7 @@
 from django.http import JsonResponse, Http404
 from django.shortcuts import render
 from django.utils.translation import activate
+from functools import wraps
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -10,8 +11,21 @@ from .serializers import (
     ScenarioSerializer,
     RasterSerializer,
     LegendSerializer,
+    LegendSymbolSerializer,
 )
-from .models import City, Collection, Scenario, Raster, Legend, Tag, LocalizedString
+from .models import (
+    City,
+    Collection,
+    Scenario,
+    Raster,
+    Legend,
+    LegendSymbol,
+    Tag,
+    LocalizedString,
+)
+
+
+# --- Html pages --- #
 
 
 def index(request):
@@ -22,113 +36,7 @@ def index(request):
     )
 
 
-# --- City --- #
-
-
-@api_view(["GET"])
-def get_cities(request):
-    instances = City.objects.all()
-    serializer = CitySerializer(instances, many=True)
-    return Response(serializer.data)
-
-
-@api_view(["GET"])
-def get_city(request, city_key):
-    try:
-        instance = City.objects.get(key=city_key)
-    except City.DoesNotExist:
-        return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    serializer = CitySerializer(instance)
-    return Response(serializer.data)
-
-
-# --- Collection --- #
-
-
-@api_view(["GET"])
-def get_collections(request):
-    instances = Collection.objects.all()
-    serializer = CollectionSerializer(instances, many=True)
-    return Response(serializer.data)
-
-
-@api_view(["GET"])
-def get_collection(request, collection_key):
-    try:
-        instance = Collection.objects.get(key=collection_key)
-    except Collection.DoesNotExist:
-        return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    serializer = CollectionSerializer(instance)
-    return Response(serializer.data)
-
-
-# --- Scenario --- #
-
-
-@api_view(["GET"])
-def get_scenarios(request):
-    instances = Scenario.objects.all()
-    serializer = ScenarioSerializer(instances, many=True)
-    return Response(serializer.data)
-
-
-@api_view(["GET"])
-def get_scenario(request, scenario_key):
-    try:
-        instance = Scenario.objects.get(key=scenario_key)
-    except Scenario.DoesNotExist:
-        return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    serializer = ScenarioSerializer(instance)
-    return Response(serializer.data)
-
-
-# --- Raster --- #
-
-
-@api_view(["GET"])
-def get_rasters(request):
-    instances = Raster.objects.all()
-    serializer = RasterSerializer(instances, many=True)
-    return Response(serializer.data)
-
-
-@api_view(["GET"])
-def get_raster(request, raster_key):
-    try:
-        instance = Raster.objects.get(key=raster_key)
-    except Raster.DoesNotExist:
-        return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    serializer = RasterSerializer(instance)
-    return Response(serializer.data)
-
-
-# --- Legend --- #
-
-
-@api_view(["GET"])
-def get_legends(request):
-    instances = Legend.objects.all()
-    serializer = LegendSerializer(instances, many=True)
-    return Response(serializer.data)
-
-
-@api_view(["GET"])
-def get_legend(request, legend_key):
-    try:
-        instance = Legend.objects.get(key=legend_key)
-    except Legend.DoesNotExist:
-        return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    serializer = LegendSerializer(instance)
-    return Response(serializer.data)
-
-
 def legend_page(request, scenario_key):
-    # Set the html language
     activate(request.GET.get("language", "sv"))
 
     if Scenario.objects.filter(key=scenario_key).exists():
@@ -145,14 +53,164 @@ def legend_page(request, scenario_key):
     return render(request, "simstad/legend.html", context)
 
 
-# --- Localization --- #
+# --- Decorators --- #
+
+
+def with_language(default="sv"):
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapper(request, *args, **kwargs):
+            lang = request.GET.get("language", default)
+            activate(lang)
+            return view_func(request, *args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+# --- City --- #
+
+
+@with_language()
+@api_view(["GET"])
+def get_cities(request):
+    instances = City.objects.all()
+    serializer = CitySerializer(instances, many=True)
+    return Response(serializer.data)
+
+
+@with_language()
+@api_view(["GET"])
+def get_city(request, city_key):
+    try:
+        instance = City.objects.get(key=city_key)
+    except City.DoesNotExist:
+        return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = CitySerializer(instance)
+    return Response(serializer.data)
+
+
+# --- Collection --- #
+
+
+@with_language()
+@api_view(["GET"])
+def get_collections(request):
+    instances = Collection.objects.all()
+    serializer = CollectionSerializer(instances, many=True)
+    return Response(serializer.data)
+
+
+@with_language()
+@api_view(["GET"])
+def get_collection(request, collection_key):
+    try:
+        instance = Collection.objects.get(key=collection_key)
+    except Collection.DoesNotExist:
+        return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = CollectionSerializer(instance)
+    return Response(serializer.data)
+
+
+# --- Scenario --- #
+
+
+@with_language()
+@api_view(["GET"])
+def get_scenarios(request):
+    instances = Scenario.objects.all()
+    serializer = ScenarioSerializer(instances, many=True)
+    return Response(serializer.data)
+
+
+@with_language()
+@api_view(["GET"])
+def get_scenario(request, scenario_key):
+    try:
+        instance = Scenario.objects.get(key=scenario_key)
+    except Scenario.DoesNotExist:
+        return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = ScenarioSerializer(instance)
+    return Response(serializer.data)
+
+
+# --- Raster --- #
+
+
+@with_language()
+@api_view(["GET"])
+def get_rasters(request):
+    instances = Raster.objects.all()
+    serializer = RasterSerializer(instances, many=True)
+    return Response(serializer.data)
+
+
+@with_language()
+@api_view(["GET"])
+def get_raster(request, raster_key):
+    try:
+        instance = Raster.objects.get(key=raster_key)
+    except Raster.DoesNotExist:
+        return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = RasterSerializer(instance)
+    return Response(serializer.data)
+
+
+# --- Legend --- #
+
+
+@with_language()
+@api_view(["GET"])
+def get_legends(request):
+    instances = Legend.objects.all()
+    serializer = LegendSerializer(instances, many=True)
+    return Response(serializer.data)
+
+
+@with_language()
+@api_view(["GET"])
+def get_legend(request, legend_key):
+    try:
+        instance = Legend.objects.get(key=legend_key)
+    except Legend.DoesNotExist:
+        return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = LegendSerializer(instance)
+    return Response(serializer.data)
+
+
+# --- Legend Symbol --- #
 
 
 @api_view(["GET"])
-def get_localization(request):
-    language = request.GET.get("language", "sv")
-    activate(language)
+def get_symbols(request):
+    instances = LegendSymbol.objects.all()
+    serializer = LegendSymbolSerializer(instances, many=True)
+    return Response(serializer.data)
 
+
+@api_view(["GET"])
+def get_symbol(request, symbol_key):
+    try:
+        instance = LegendSymbol.objects.get(key=symbol_key)
+    except LegendSymbol.DoesNotExist:
+        return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = LegendSymbolSerializer(instance)
+    return Response(serializer.data)
+
+
+# --- Localization --- #
+
+
+@with_language()
+@api_view(["GET"])
+def get_localization(request):
     localization_dict = {}
 
     # Add LocalizedString entries
@@ -170,6 +228,7 @@ def get_localization(request):
     # Add Scenario translations
     for scenario in Scenario.objects.all():
         localization_dict[f"scenario_{scenario.key}_name"] = scenario.name
+        localization_dict[f"scenario_{scenario.key}_short_name"] = scenario.short_name
         localization_dict[f"scenario_{scenario.key}_description"] = scenario.description
         if scenario.legend_image_source:
             localization_dict[f"scenario_{scenario.key}_legend_image_source"] = (

@@ -14,6 +14,8 @@ urlpatterns = [
 	path("get_raster/<str:raster_key>/", views.get_raster),
 	path("get_legends/", views.get_legends),
 	path("get_legend/<str:legend_key>/", views.get_legend),
+	path("get_symbols/", views.get_symbols),
+	path("get_symbol/<str:symbol_key>/", views.get_symbol),
 	path("get_localization/", views.get_localization),
 	path("legend/<str:scenario_key>/", views.legend_page),
 ]
