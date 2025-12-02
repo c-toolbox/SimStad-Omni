@@ -14,13 +14,23 @@ from .models import (
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ["key", "name"]
+        fields = [
+            "created_at",
+            "changed_at",
+            "key",
+            "name",
+        ]
 
 
 class LegendSymbolSerializer(serializers.ModelSerializer):
     class Meta:
         model = LegendSymbol
-        fields = ["key", "image"]
+        fields = [
+            "created_at",
+            "changed_at",
+            "key",
+            "image",
+        ]
 
 
 class LegendEntrySerializer(serializers.ModelSerializer):
@@ -28,7 +38,12 @@ class LegendEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LegendEntry
-        fields = ["text", "color", "symbol", "order"]
+        fields = [
+            "legend",
+            "text",
+            "symbol",
+            "order",
+        ]
 
 
 class LegendSerializer(serializers.ModelSerializer):
@@ -36,7 +51,13 @@ class LegendSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Legend
-        fields = ["key", "title", "entries"]
+        fields = [
+            "created_at",
+            "changed_at",
+            "key",
+            "title",
+            "entries",
+        ]
 
 
 class RasterSerializer(serializers.ModelSerializer):
@@ -45,29 +66,37 @@ class RasterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Raster
         fields = [
+            "created_at",
+            "changed_at",
             "key",
             "name",
             "notes",
+            "city",
+            "tags",
             "image",
             "minimap",
             "thumbnail",
-            "tags",
         ]
 
 
 class ScenarioSerializer(serializers.ModelSerializer):
-    legend = serializers.SlugRelatedField(many=False, read_only=True, slug_field="key")
     rasters = serializers.SlugRelatedField(many=True, read_only=True, slug_field="key")
+    legend = serializers.SlugRelatedField(many=False, read_only=True, slug_field="key")
 
     class Meta:
         model = Scenario
         fields = [
+            "created_at",
+            "changed_at",
             "key",
             "name",
+            "short_name",
             "description",
-            "legend_image",
-            "legend",
+            "city",
             "rasters",
+            "legend",
+            "legend_image",
+            "legend_image_source",
         ]
 
 
@@ -78,7 +107,16 @@ class CollectionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Collection
-        fields = ["key", "name", "blocks_video", "image", "scenarios"]
+        fields = [
+            "created_at",
+            "changed_at",
+            "key",
+            "name",
+            "city",
+            "blocks_video",
+            "image",
+            "scenarios",
+        ]
 
 
 class CitySerializer(serializers.ModelSerializer):
@@ -88,4 +126,15 @@ class CitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = City
-        fields = ["id", "key", "name", "collections"]
+        fields = [
+            "created_at",
+            "changed_at",
+            "key",
+            "name",
+            "min_x",
+            "min_y",
+            "max_x",
+            "max_y",
+            "default_blocks_video",
+            "collections",
+        ]
