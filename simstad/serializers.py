@@ -4,11 +4,17 @@ from .models import (
     Collection,
     Scenario,
     Raster,
-    Tag,
     Legend,
     LegendEntry,
     LegendSymbol,
+    Tag,
 )
+
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ["key", "name"]
 
 
 class LegendSymbolSerializer(serializers.ModelSerializer):

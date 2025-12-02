@@ -12,6 +12,7 @@ from .serializers import (
     RasterSerializer,
     LegendSerializer,
     LegendSymbolSerializer,
+    TagSerializer,
 )
 from .models import (
     City,
@@ -187,6 +188,7 @@ def get_legend(request, legend_key):
 # --- Legend Symbol --- #
 
 
+@with_language()
 @api_view(["GET"])
 def get_symbols(request):
     instances = LegendSymbol.objects.all()
@@ -194,6 +196,7 @@ def get_symbols(request):
     return Response(serializer.data)
 
 
+@with_language()
 @api_view(["GET"])
 def get_symbol(request, symbol_key):
     try:
@@ -202,6 +205,29 @@ def get_symbol(request, symbol_key):
         return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
 
     serializer = LegendSymbolSerializer(instance)
+    return Response(serializer.data)
+
+
+# --- Tag --- #
+
+
+@with_language()
+@api_view(["GET"])
+def get_tags(request):
+    instances = Tag.objects.all()
+    serializer = TagSerializer(instances, many=True)
+    return Response(serializer.data)
+
+
+@with_language()
+@api_view(["GET"])
+def get_tag(request, tag_key):
+    try:
+        instance = Tag.objects.get(key=tag_key)
+    except Tag.DoesNotExist:
+        return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = TagSerializer(instance)
     return Response(serializer.data)
 
 
