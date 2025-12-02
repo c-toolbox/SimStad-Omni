@@ -45,6 +45,12 @@ class City(models.Model):
         default=6500000, help_text="Maximum Y coordinate (SWEREF 99 TM)"
     )
 
+    default_blocks_video = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Default Blocks video that plays when no data is shown",
+    )
+
     def __str__(self):
         return self.key
 
@@ -79,6 +85,7 @@ class Collection(models.Model):
 
     blocks_video = models.CharField(
         max_length=255,
+        blank=True,
         help_text="Blocks video associated with the collection",
     )
 

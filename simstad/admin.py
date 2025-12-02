@@ -47,6 +47,7 @@ class CityAdmin(TranslationAdmin):
         "min_y",
         "max_x",
         "max_y",
+        "default_blocks_video"
     ]
 
     @admin.display(description="Collections")
