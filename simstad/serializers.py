@@ -39,8 +39,8 @@ class LegendEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = LegendEntry
         fields = [
-            "legend",
             "text",
+            "color",
             "symbol",
             "order",
         ]
@@ -71,7 +71,6 @@ class RasterSerializer(serializers.ModelSerializer):
             "key",
             "name",
             "notes",
-            "city",
             "tags",
             "image",
             "minimap",
@@ -92,7 +91,6 @@ class ScenarioSerializer(serializers.ModelSerializer):
             "name",
             "short_name",
             "description",
-            "city",
             "rasters",
             "legend",
             "legend_image",
@@ -112,7 +110,6 @@ class CollectionSerializer(serializers.ModelSerializer):
             "changed_at",
             "key",
             "name",
-            "city",
             "blocks_video",
             "image",
             "scenarios",
