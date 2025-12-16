@@ -383,7 +383,7 @@ class LegendAdmin(SortableAdminBase, TranslationAdmin):
                             text_sv=entry.get("text", ""),
                             color=entry.get("color", "#FFFFFF"),
                             symbol=symbol,
-                            order=idx,
+                            order=idx + 1,
                         )
                     self.message_user(
                         request,

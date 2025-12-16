@@ -267,7 +267,7 @@ def get_localization(request):
 
         # Add LegendEntry translations
         for idx, entry in enumerate(legend.entries.all()):
-            localization_dict[f"legend_{legend.key}_{idx}_text"] = entry.text
+            localization_dict[f"legend_{legend.key}_{idx+1}_text"] = entry.text
 
     # Add Tag translations
     for tag in Tag.objects.all():
