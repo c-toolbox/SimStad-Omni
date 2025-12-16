@@ -79,7 +79,7 @@ class RasterSerializer(serializers.ModelSerializer):
 
 
 class ScenarioSerializer(serializers.ModelSerializer):
-    rasters = serializers.SlugRelatedField(many=True, read_only=True, slug_field="key")
+    rasters = serializers.SerializerMethodField()
     legend = serializers.SlugRelatedField(many=False, read_only=True, slug_field="key")
 
     class Meta:
@@ -97,11 +97,16 @@ class ScenarioSerializer(serializers.ModelSerializer):
             "legend_image_source",
         ]
 
+    def get_rasters(self, obj):
+        return list(
+            obj.scenarioraster_set.order_by("order").values_list(
+                "raster__key", flat=True
+            )
+        )
+
 
 class CollectionSerializer(serializers.ModelSerializer):
-    scenarios = serializers.SlugRelatedField(
-        many=True, read_only=True, slug_field="key"
-    )
+    scenarios = serializers.SerializerMethodField()
 
     class Meta:
         model = Collection
@@ -114,6 +119,13 @@ class CollectionSerializer(serializers.ModelSerializer):
             "image",
             "scenarios",
         ]
+
+    def get_scenarios(self, obj):
+        return list(
+            obj.collectionscenario_set.order_by("order").values_list(
+                "scenario__key", flat=True
+            )
+        )
 
 
 class CitySerializer(serializers.ModelSerializer):
