@@ -18,6 +18,7 @@ django-cleanup = "*"
 django-colorfield = "*"
 django-modeltranslation = "*"
 django-admin-sortable2 = "*"
+moviepy = "==1.0.3"
 
 [dev-packages]
 

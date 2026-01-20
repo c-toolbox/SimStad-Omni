@@ -11,7 +11,7 @@ from .models import (
     Collection,
     CollectionScenario,
     Scenario,
-    ScenarioRaster,
+    Layer,
     Raster,
     Tag,
     Legend,
@@ -47,7 +47,7 @@ class CityAdmin(TranslationAdmin):
         "min_y",
         "max_x",
         "max_y",
-        "default_blocks_video"
+        "default_blocks_video",
     ]
 
     @admin.display(description="Collections")
@@ -110,25 +110,118 @@ class CollectionAdmin(SortableAdminBase, TranslationAdmin):
 # --- Scenario --- #
 
 
-class ScenarioRasterInline(SortableInlineAdminMixin, admin.TabularInline):
-    verbose_name = "Raster"
-    verbose_name_plural = "Rasters"
-    model = ScenarioRaster
+class LayerInline(SortableInlineAdminMixin, admin.StackedInline):
+    verbose_name = "Layer"
+    verbose_name_plural = "Layers"
+    model = Layer
     extra = 0
-    fields = ["raster"]
     sortable_field_name = "order"
+
+    fieldsets = [
+        (
+            None,
+            {
+                "classes": ("layer-advanced",),
+                "fields": (("type",),),
+            },
+        ),
+        (
+            None,
+            {
+                "classes": ("layer-media",),
+                "fields": (("raster",),),
+            },
+        ),
+        (
+            None,
+            {
+                "classes": ("layer-flow",),
+                "fields": (
+                    (
+                        "flow_texture",
+                        "flow_scale",
+                        "flow_speed",
+                    ),
+                ),
+            },
+        ),
+        (
+            None,
+            {
+                "classes": ("layer-movie",),
+                "fields": (("movie_speed",),),
+            },
+        ),
+        (
+            None,
+            {
+                "classes": ("layer-color",),
+                "fields": (("color",),),
+            },
+        ),
+        (
+            None,
+            {
+                "classes": ("layer-ndi",),
+                "fields": (
+                    (
+                        "ndi_stream",
+                        "ndi_machine",
+                    ),
+                ),
+            },
+        ),
+        (
+            "Advanced",
+            {
+                "classes": ("collapse",),
+                "fields": (("opacity", "emission", "crop_type"),),
+            },
+        ),
+        (
+            "Slice crop",
+            {
+                "classes": ("crop-slice",),
+                "fields": (
+                    (
+                        "crop_min_u",
+                        "crop_max_u",
+                        "crop_min_v",
+                        "crop_max_v",
+                    ),
+                ),
+            },
+        ),
+        (
+            "Circle crop",
+            {
+                "classes": ("crop-circle",),
+                "fields": (
+                    (
+                        "crop_center_u",
+                        "crop_center_v",
+                        "crop_radius",
+                    ),
+                ),
+            },
+        ),
+    ]
+
+    class Media:
+        js = ("simstad/admin/layer.js",)
+        css = {"all": ("simstad/admin/layer.css",)}
 
 
 @admin.register(Scenario)
 class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
-    inlines = [ScenarioRasterInline]
+    inlines = [LayerInline]
     list_filter = ["city", "collections"]
     list_display = [
         "key",
         "name",
         "city",
         "collection",
-        "raster_count",
+        "layer_count",
         "legend_type",
         "rasters_preview",
         "created_at",
@@ -149,9 +242,9 @@ class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
     def collection(self, obj: Scenario):
         return obj.collections.first()
 
-    @admin.display(description="Rasters")
-    def raster_count(self, obj: Scenario):
-        return obj.rasters.count()
+    @admin.display(description="Layers")
+    def layer_count(self, obj: Scenario):
+        return obj.layers.count()
 
     @admin.display(description="Legend")
     def legend_type(self, obj: Scenario):
@@ -169,13 +262,17 @@ class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
             return ""
 
         # Get all rasters with their order
-        scenario_rasters = ScenarioRaster.objects.filter(scenario=obj).order_by("order")
+        layers = Layer.objects.filter(scenario=obj).order_by("order")
         html = '<div style="position: relative; height: 64px;">'
 
-        for scenario_raster in scenario_rasters:
-            raster = scenario_raster.raster
-            if raster.thumbnail:
-                html += f'<img src="{raster.thumbnail.url}" style="position: absolute; top: 0; left: 0; height: 64px;" />'
+        for layer in layers:
+            if layer.type in ["image", "flow", "movie"]:
+                if layer.raster and layer.raster.thumbnail:
+                    html += f'<img src="{layer.raster.thumbnail.url}" style="position: absolute; top: 0; left: 0; width: 64px; height: 64px; opacity: {layer.opacity};" />'
+            if layer.type == "color":
+                html += f'<div style="position: absolute; top: 0; left: 0; width: 64px; height: 64px; background-color: {layer.color}; opacity: {layer.opacity};"></div>'
+            if layer.type == "ndi":
+                pass
 
         html += "</div>"
         return format_html(html)
@@ -228,7 +325,7 @@ class RasterAdmin(TranslationAdmin):
 
     @admin.display(description="Image")
     def image_preview(self, obj: Raster):
-        if obj.image and obj.thumbnail:
+        if obj.thumbnail:
             return format_html(
                 '<img src="{}" height="64" />',
                 obj.thumbnail.url,
@@ -373,7 +470,9 @@ class LegendAdmin(SortableAdminBase, TranslationAdmin):
                     for idx, entry in enumerate(entries):
                         # Find symbol in database, if possible
                         type_name = entry.get("type", "rectangle")
-                        symbol = LegendSymbol.objects.filter(name__iexact=type_name).first()
+                        symbol = LegendSymbol.objects.filter(
+                            name__iexact=type_name
+                        ).first()
                         if symbol is None:
                             symbol = LegendSymbol.objects.first()
 

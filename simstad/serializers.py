@@ -79,7 +79,7 @@ class RasterSerializer(serializers.ModelSerializer):
 
 
 class ScenarioSerializer(serializers.ModelSerializer):
-    rasters = serializers.SerializerMethodField()
+    layers = serializers.SerializerMethodField()
     legend = serializers.SlugRelatedField(many=False, read_only=True, slug_field="key")
 
     class Meta:
@@ -91,18 +91,63 @@ class ScenarioSerializer(serializers.ModelSerializer):
             "name",
             "short_name",
             "description",
-            "rasters",
+            "layers",
             "legend",
             "legend_image",
             "legend_image_source",
         ]
 
-    def get_rasters(self, obj):
-        return list(
-            obj.scenarioraster_set.order_by("order").values_list(
-                "raster__key", flat=True
-            )
-        )
+    def serialize_layer(self, layer):
+        data = {
+            "type": layer.type,
+        }
+
+        # Raster (shared by image / flow / movie)
+        if layer.type in {"image", "flow", "movie"} and layer.raster:
+            data["raster"] = layer.raster.key
+
+        # Flow
+        if layer.type == "flow":
+            data["flow"] = {
+                "texture": layer.flow_texture.key if layer.flow_texture else None,
+                "scale": layer.flow_scale,
+                "speed": layer.flow_speed,
+            }
+
+        # Movie
+        if layer.type == "movie":
+            data["movie"] = {
+                "speed": layer.movie_speed,
+            }
+
+        # Color
+        if layer.type == "color":
+            data["color"] = layer.color
+
+        # NDI
+        if layer.type == "ndi":
+            data["ndi"] = {
+                "stream": layer.ndi_stream,
+            }
+            if layer.ndi_machine:
+                data["ndi"]["machine"] = layer.ndi_machine
+
+        # Optional modifiers (only if non-default)
+        if layer.opacity is not None and layer.opacity != 1.0:
+            data["opacity"] = layer.opacity
+
+        if layer.emission is not None and layer.emission != 0.0:
+            data["emission"] = layer.emission
+
+        crop = layer.get_crop_data()
+        if crop:
+            data["crop"] = crop
+
+        return data
+
+    def get_layers(self, obj):
+        layers = obj.layers.select_related("raster").order_by("order")
+        return [self.serialize_layer(layer) for layer in layers]
 
 
 class CollectionSerializer(serializers.ModelSerializer):

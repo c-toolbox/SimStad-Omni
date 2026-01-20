@@ -1,7 +1,7 @@
 import os, uuid
 from django.db import models
 from colorfield.fields import ColorField
-from .utils import generate_minimap, generate_thumbnail, ensure_image_size
+from .utils import generate_minimap, generate_thumbnail, generate_video_minimap, generate_video_thumbnail, ensure_image_size
 
 
 # A VisualCity installation
@@ -187,17 +187,212 @@ class Scenario(models.Model):
         return self.key
 
 
-class ScenarioRaster(models.Model):
+class Layer(models.Model):
     class Meta:
-        unique_together = ("scenario", "raster")
         ordering = ["order"]
+        verbose_name = "Layer"
+        verbose_name_plural = "Layers"
 
-    scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE)
-    raster = models.ForeignKey("Raster", on_delete=models.CASCADE)
-    order = models.PositiveIntegerField(default=0, editable=True, db_index=True)
+    # Layer Type (Discriminator)
+    LAYER_TYPE_CHOICES = [
+        ("image", "Image"),
+        ("flow", "Flow"),
+        ("movie", "Movie"),
+        ("color", "Color"),
+        ("ndi", "NDI"),
+    ]
+
+    type = models.CharField(
+        max_length=16,
+        choices=LAYER_TYPE_CHOICES,
+        default="image",
+        db_index=True,
+        help_text="Layer type",
+    )
+
+    scenario = models.ForeignKey(
+        "Scenario",
+        on_delete=models.CASCADE,
+        related_name="layers",
+        help_text="The scenario this layer belongs to.",
+    )
+
+    order = models.PositiveIntegerField(
+        default=0,
+        db_index=True,
+        help_text="Rendering order within the scenario.",
+    )
+
+    opacity = models.FloatField(
+        default=1.0,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+        help_text="Transparency",
+    )
+
+    emission = models.FloatField(
+        default=0.0,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0.0)],
+        help_text="Self-illumination",
+    )
+
+    # Crop Fields (Discriminated by crop_type)
+    CROP_CHOICES = [
+        ("none", "No Crop"),
+        ("slice", "Slice Crop"),
+        ("circle", "Circle Crop"),
+    ]
+
+    crop_type = models.CharField(
+        max_length=10,
+        choices=CROP_CHOICES,
+        default="none",
+        help_text="Cropping",
+    )
+
+    # Slice Crop
+    crop_min_u = models.FloatField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+    )
+    crop_max_u = models.FloatField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+    )
+    crop_min_v = models.FloatField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+    )
+    crop_max_v = models.FloatField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+    )
+
+    # Circle Crop
+    crop_center_u = models.FloatField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+    )
+    crop_center_v = models.FloatField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+    )
+    crop_radius = models.FloatField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+    )
+
+    # Image Layer Fields
+    raster = models.ForeignKey(
+        "Raster",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="layers",
+        help_text="Raster image used by image layers.",
+    )
+
+    # Flow Layer Fields
+    flow_texture = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="Key for the flow texture image.",
+    )
+    flow_scale = models.FloatField(null=True, blank=True, default=1.0)
+    flow_speed = models.FloatField(null=True, blank=True, default=1.0)
+
+    # Movie Layer Fields
+    movie_speed = models.FloatField(
+        null=True,
+        blank=True,
+        default=1.0,
+        help_text="Playback speed of the movie layer.",
+    )
+
+    # Color Layer Fields
+    color = ColorField(
+        default="#FFFFFF",
+        null=True,
+        blank=True,
+        help_text="Solid color for color layers.",
+    )
+
+    # NDI Layer Fields
+    ndi_stream = models.CharField(
+        max_length=128,
+        null=True,
+        blank=True,
+        help_text="NDI stream name.",
+    )
+    ndi_machine = models.CharField(
+        max_length=128,
+        null=True,
+        blank=True,
+        help_text="Optional NDI machine name.",
+    )
+
+    def get_crop_data(self):
+        if self.crop_type == "slice":
+            return {
+                "type": "slice",
+                "slice": {
+                    "min_u": self.crop_min_u,
+                    "max_u": self.crop_max_u,
+                    "min_v": self.crop_min_v,
+                    "max_v": self.crop_max_v,
+                },
+            }
+        elif self.crop_type == "circle":
+            return {
+                "type": "circle",
+                "circle": {
+                    "u": self.crop_center_u,
+                    "v": self.crop_center_v,
+                    "radius": self.crop_radius,
+                },
+            }
+        return None
+
+    RASTER_REQUIRED_TYPES = {"image", "flow", "movie"}
+
+    def clean(self):
+        if self.type in {"image", "flow", "movie"}:
+            if not self.raster:
+                raise ValidationError({"raster": f"{self.type.capitalize()} layers require a raster."})
+
+        if self.type == "flow" and not self.flow_texture:
+            raise ValidationError({"flow_texture": "Flow layers require a flow texture."})
+
+        if self.type == "ndi" and not self.ndi_stream:
+            raise ValidationError({"ndi_stream": "NDI layers require a stream name."})
+
+        if self.raster:
+            if self.type == "image" and self.raster.media_type != "image":
+                raise ValidationError({"raster": "Image layers must reference a raster of type 'image'."})
+
+            if self.type == "flow" and self.raster.media_type != "image":
+                raise ValidationError({"raster": "Flow layers must reference a raster of type 'image'."})
+
+            if self.type == "movie" and self.raster.media_type != "video":
+                raise ValidationError({"raster": "Movie layers must reference a raster of type 'video'."})
+
+    @property
+    def name(self):
+        return "FIX NAME"
 
     def __str__(self):
-        return self.raster.key
+        return f"{self.type.upper()} - {self.name} ({self.scenario.key})"
 
 
 def upload_raster(instance, filename):

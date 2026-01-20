@@ -1,4 +1,5 @@
 from PIL import Image
+from moviepy.editor import VideoFileClip
 from django.core.exceptions import ValidationError
 
 
@@ -46,3 +47,39 @@ def ensure_image_size(image_path):
             raise ValidationError(
                 f"Image must be exactly 128×64 px, but is {width}×{height}."
             )
+
+
+# Generates a 256x256 thumbnail for a video
+def generate_video_thumbnail(video_path):
+    with VideoFileClip(video_path) as clip:
+        frame = clip.get_frame(clip.duration / 2)
+        image = Image.fromarray(frame)
+
+        # Same crop logic as your image thumbnail
+        width, height = image.size
+        new_size = min(width, height)
+        cx, cy = width / 2, height / 2
+
+        left = round(cx - new_size / 2)
+        top = round(cy - new_size / 2)
+        right = round(cx + new_size / 2)
+        bottom = round(cy + new_size / 2)
+
+        cropped_image = image.crop((left, top, right, bottom))
+        scaled_image = cropped_image.resize((256, 256), Image.Resampling.LANCZOS)
+
+        return scaled_image
+
+
+# Generate a 730x548 minimap for a video
+def generate_video_minimap(video_path):
+    with VideoFileClip(video_path) as clip:
+        frame = clip.get_frame(clip.duration / 2)
+        image = Image.fromarray(frame)
+
+        new_width = 730
+        aspect_ratio = image.height / image.width
+        new_height = int(new_width * aspect_ratio)
+        scaled_image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+
+        return scaled_image

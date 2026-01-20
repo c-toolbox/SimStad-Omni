@@ -1,0 +1,58 @@
+/* === Compact horizontal rows inside stacked inlines === */
+
+.inline-related .form-row .flex-container.form-multiline {
+    gap: 12px;              /* space between fields */
+    align-items: center;
+}
+
+/* Each field wrapper */
+.inline-related .form-row .flex-container.fieldBox {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;               /* label ↔ input spacing */
+}
+
+/* Labels: shrink and hug inputs */
+.dynamic-layers .form-row .flex-container > label {
+    display: inline-block;
+	margin: 0;
+    margin-right: 6px;
+    white-space: nowrap;
+	width: auto;
+	min-width: 0;
+}
+
+/* Inputs/selects should not stretch */
+.inline-related .form-row .fieldBox input,
+.inline-related .form-row .fieldBox select,
+.inline-related .form-row .fieldBox textarea {
+    width: auto;
+    max-width: 12em;
+}
+
+/* Prevent help text from forcing new rows */
+.inline-related .form-row .help {
+    display: none;
+}
+
+
+
+
+/* First fieldset: type + layer-specific fields */
+.dynamic-layers fieldset:first-of-type .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.dynamic-layers fieldset:first-of-type .fieldBox,
+.dynamic-layers fieldset:first-of-type .flex-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Prevent labels from stacking */
+.dynamic-layers fieldset:first-of-type label {
+    white-space: nowrap;
+}
