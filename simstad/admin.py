@@ -239,7 +239,7 @@ class LayerInline(SortableInlineAdminMixin, admin.StackedInline):
 @admin.register(Scenario)
 class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
     inlines = [LayerInline]
-    list_filter = ["city", "collections"]
+    list_filter = ["city", "collections", "layer_display_mode"]
     list_display = [
         "key",
         "name",
@@ -276,7 +276,7 @@ class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
         (
             "Advanced",
             {
-                "fields": ("short_name",),
+                "fields": ("short_name", "layer_display_mode"),
                 "classes": ("collapse",),
             },
         ),
@@ -288,6 +288,8 @@ class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
 
     @admin.display(description="Layers")
     def layer_count(self, obj: Scenario):
+        if obj.layer_display_mode == "sequential":
+            return f"{obj.layers.count()} (sequence)"
         return obj.layers.count()
 
     @admin.display(description="Legend")
@@ -317,6 +319,10 @@ class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
                 html += f'<div style="position: absolute; top: 0; left: 0; width: 64px; height: 64px; background-color: {layer.color}; opacity: {layer.opacity};"></div>'
             if layer.type == "ndi":
                 pass
+
+            # Only display first image in a sequence
+            if obj.layer_display_mode == "sequential":
+                break
 
         html += "</div>"
         return format_html(html)

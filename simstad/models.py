@@ -3,7 +3,13 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from colorfield.fields import ColorField
-from .utils import generate_minimap, generate_thumbnail, generate_video_minimap, generate_video_thumbnail, ensure_image_size
+from .utils import (
+    generate_minimap,
+    generate_thumbnail,
+    generate_video_minimap,
+    generate_video_thumbnail,
+    ensure_image_size,
+)
 
 
 # A VisualCity installation
@@ -68,7 +74,7 @@ class FeaturedCollection(models.Model):
         "Collection",
         on_delete=models.CASCADE,
         related_name="+",
-        help_text="Collections featured on the exhibition start page"
+        help_text="Collections featured on the exhibition start page",
     )
     order = models.PositiveIntegerField(default=0, db_index=True)
 
@@ -207,6 +213,18 @@ class Scenario(models.Model):
         null=True,
         blank=True,
         help_text="Source information for the legend image.",
+    )
+
+    LAYER_DISPLAY_MODES = [
+        ("stacked", "Stacked"),
+        ("sequential", "Sequential"),
+    ]
+
+    layer_display_mode = models.CharField(
+        max_length=16,
+        choices=LAYER_DISPLAY_MODES,
+        default="stacked",
+        help_text="Determine whether layers are stacked or shown sequentially",
     )
 
     def __str__(self):
@@ -396,25 +414,39 @@ class Layer(models.Model):
 
     def clean(self):
         if self.type in {"image", "flow", "movie"} and not self.raster:
-            raise ValidationError({"raster": f"{self.type.capitalize()} layers require a raster."})
+            raise ValidationError(
+                {"raster": f"{self.type.capitalize()} layers require a raster."}
+            )
 
         if self.type == "flow" and not self.flow_texture:
-            raise ValidationError({"flow_texture": "Flow layers require a flow texture raster."})
+            raise ValidationError(
+                {"flow_texture": "Flow layers require a flow texture raster."}
+            )
         if self.type == "flow" and self.flow_texture.media_type != "image":
-            raise ValidationError({"flow_texture": "Flow texture must reference a raster of type 'image'."})
+            raise ValidationError(
+                {
+                    "flow_texture": "Flow texture must reference a raster of type 'image'."
+                }
+            )
 
         if self.type == "ndi" and not self.ndi_stream:
             raise ValidationError({"ndi_stream": "NDI layers require a stream name."})
 
         if self.raster:
             if self.type == "image" and self.raster.media_type != "image":
-                raise ValidationError({"raster": "Image layers must reference a raster of type 'image'."})
+                raise ValidationError(
+                    {"raster": "Image layers must reference a raster of type 'image'."}
+                )
 
             if self.type == "flow" and self.raster.media_type != "image":
-                raise ValidationError({"raster": "Flow layers must reference a raster of type 'image'."})
+                raise ValidationError(
+                    {"raster": "Flow layers must reference a raster of type 'image'."}
+                )
 
             if self.type == "movie" and self.raster.media_type != "video":
-                raise ValidationError({"raster": "Movie layers must reference a raster of type 'video'."})
+                raise ValidationError(
+                    {"raster": "Movie layers must reference a raster of type 'video'."}
+                )
 
     @property
     def name(self):
@@ -587,7 +619,9 @@ class Raster(models.Model):
         thumbnail = generate_video_thumbnail(self.media.path)
         thumbnail_path = self.get_output_path("thumbnails").replace(".mp4", ".png")
         thumbnail.save(thumbnail_path, format="PNG")
-        self.thumbnail.name = self.get_output_relpath("thumbnails").replace(".mp4", ".png")
+        self.thumbnail.name = self.get_output_relpath("thumbnails").replace(
+            ".mp4", ".png"
+        )
 
     def generate_video_minimap(self):
         minimap = generate_video_minimap(self.media.path)
@@ -599,9 +633,7 @@ class Raster(models.Model):
     def get_output_path(self, folder):
         ext = self.get_extension()
         path = self.media.path
-        folder_path = os.path.abspath(
-            os.path.join(os.path.dirname(path), "..", folder)
-        )
+        folder_path = os.path.abspath(os.path.join(os.path.dirname(path), "..", folder))
         os.makedirs(folder_path, exist_ok=True)
         return os.path.join(folder_path, f"{self.key}{ext}")
 

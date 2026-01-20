@@ -92,6 +92,7 @@ class ScenarioSerializer(serializers.ModelSerializer):
             "short_name",
             "description",
             "layers",
+            "layer_display_mode",
             "legend",
             "legend_image",
             "legend_image_source",
