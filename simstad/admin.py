@@ -309,8 +309,10 @@ class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
 
         # Get all rasters with their order
         layers = Layer.objects.filter(scenario=obj).order_by("order")
-        html = '<div style="position: relative; height: 64px;">'
+        if obj.layer_display_mode == "sequential":
+            layers = [layers.last()]
 
+        html = '<div style="position: relative; height: 64px;">'
         for layer in layers:
             if layer.type in ["image", "flow", "movie"]:
                 if layer.raster and layer.raster.thumbnail:
@@ -319,12 +321,8 @@ class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
                 html += f'<div style="position: absolute; top: 0; left: 0; width: 64px; height: 64px; background-color: {layer.color}; opacity: {layer.opacity};"></div>'
             if layer.type == "ndi":
                 pass
-
-            # Only display first image in a sequence
-            if obj.layer_display_mode == "sequential":
-                break
-
         html += "</div>"
+
         return format_html(html)
 
 
