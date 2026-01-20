@@ -109,7 +109,7 @@ class ScenarioSerializer(serializers.ModelSerializer):
         # Flow
         if layer.type == "flow":
             data["flow"] = {
-                "texture": layer.flow_texture.key if layer.flow_texture else None,
+                "texture": layer.flow_texture.key,
                 "scale": layer.flow_scale,
                 "speed": layer.flow_speed,
             }
@@ -177,6 +177,7 @@ class CitySerializer(serializers.ModelSerializer):
     collections = serializers.SlugRelatedField(
         many=True, read_only=True, slug_field="key"
     )
+    featured_collections = serializers.SerializerMethodField()
 
     class Meta:
         model = City
@@ -191,4 +192,8 @@ class CitySerializer(serializers.ModelSerializer):
             "max_y",
             "default_blocks_video",
             "collections",
+            "featured_collections",
         ]
+
+    def get_featured_collections(self, obj):
+        return [c.collection.key for c in obj.featured_collections.all()]

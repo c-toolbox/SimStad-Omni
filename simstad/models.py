@@ -1,5 +1,7 @@
-import os, uuid
+import os
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from colorfield.fields import ColorField
 from .utils import generate_minimap, generate_thumbnail, generate_video_minimap, generate_video_thumbnail, ensure_image_size
 
@@ -53,6 +55,29 @@ class City(models.Model):
 
     def __str__(self):
         return self.key
+
+
+# Specifically chosen collections to be displayed in a City exhibition
+class FeaturedCollection(models.Model):
+    city = models.ForeignKey(
+        "City",
+        on_delete=models.CASCADE,
+        related_name="featured_collections",
+    )
+    collection = models.ForeignKey(
+        "Collection",
+        on_delete=models.CASCADE,
+        related_name="+",
+        help_text="Collections featured on the exhibition start page"
+    )
+    order = models.PositiveIntegerField(default=0, db_index=True)
+
+    class Meta:
+        ordering = ["order"]
+        unique_together = [["city", "collection"]]
+
+    def __str__(self):
+        return f"{self.city.key} → {self.collection.key}"
 
 
 # A collection of scenarios that follow a theme
@@ -157,7 +182,8 @@ class Scenario(models.Model):
 
     rasters = models.ManyToManyField(
         "Raster",
-        through="ScenarioRaster",
+        through="Layer",
+        through_fields=("scenario", "raster"),
         related_name="scenarios",
     )
 
@@ -303,11 +329,13 @@ class Layer(models.Model):
     )
 
     # Flow Layer Fields
-    flow_texture = models.CharField(
-        max_length=255,
+    flow_texture = models.ForeignKey(
+        "Raster",
         null=True,
         blank=True,
-        help_text="Key for the flow texture image.",
+        on_delete=models.PROTECT,
+        related_name="flow_layers",
+        help_text="Secondary raster used as texture for flow layers.",
     )
     flow_scale = models.FloatField(null=True, blank=True, default=1.0)
     flow_speed = models.FloatField(null=True, blank=True, default=1.0)
@@ -367,12 +395,13 @@ class Layer(models.Model):
     RASTER_REQUIRED_TYPES = {"image", "flow", "movie"}
 
     def clean(self):
-        if self.type in {"image", "flow", "movie"}:
-            if not self.raster:
-                raise ValidationError({"raster": f"{self.type.capitalize()} layers require a raster."})
+        if self.type in {"image", "flow", "movie"} and not self.raster:
+            raise ValidationError({"raster": f"{self.type.capitalize()} layers require a raster."})
 
         if self.type == "flow" and not self.flow_texture:
-            raise ValidationError({"flow_texture": "Flow layers require a flow texture."})
+            raise ValidationError({"flow_texture": "Flow layers require a flow texture raster."})
+        if self.type == "flow" and self.flow_texture.media_type != "image":
+            raise ValidationError({"flow_texture": "Flow texture must reference a raster of type 'image'."})
 
         if self.type == "ndi" and not self.ndi_stream:
             raise ValidationError({"ndi_stream": "NDI layers require a stream name."})
@@ -389,16 +418,26 @@ class Layer(models.Model):
 
     @property
     def name(self):
-        return "FIX NAME"
+        if self.type in ["image", "flow", "movie"]:
+            return self.raster.key
+        if self.type == "color":
+            return self.color
+        if self.type == "ndi":
+            return self.ndi_stream
+        return f"{self.scenario.key} - {self.raster.key}"
 
     def __str__(self):
-        return f"{self.type.upper()} - {self.name} ({self.scenario.key})"
+        return f"{self.type} - {self.name}"
 
 
 def upload_raster(instance, filename):
     base, ext = os.path.splitext(filename)
     new_filename = f"{instance.key}{ext.lower()}"
     return f"rasters/{new_filename}"
+
+def upload_video(instance, filename):
+    ext = os.path.splitext(filename)[1].lower()
+    return f"videos/{instance.key}{ext}"
 
 
 class Raster(models.Model):
@@ -441,7 +480,25 @@ class Raster(models.Model):
         help_text="Tags associated with the raster.",
     )
 
-    image = models.ImageField(upload_to=upload_raster)
+    class MediaType(models.TextChoices):
+        IMAGE = "image", "Image"
+        VIDEO = "video", "Video"
+
+    media_type = models.CharField(
+        max_length=8,
+        choices=MediaType.choices,
+        default=MediaType.IMAGE,
+        db_index=True,
+    )
+
+    video = models.FileField(
+        upload_to=upload_video,
+        null=True,
+        blank=True,
+        help_text="MP4 video file (only for video rasters)",
+    )
+
+    image = models.ImageField(upload_to=upload_raster, null=True, blank=True)
     minimap = models.ImageField(upload_to="minimaps/", null=True, blank=True)
     thumbnail = models.ImageField(upload_to="thumbnails/", null=True, blank=True)
 
@@ -450,44 +507,100 @@ class Raster(models.Model):
         self._old_key = self.key
         self._old_image = self.image
 
+    def clean(self):
+        if self.media_type == self.MediaType.IMAGE:
+            if not self.image:
+                raise ValidationError({"image": "Image rasters require an image file."})
+            if self.video:
+                raise ValidationError({"video": "Image rasters cannot have a video."})
+
+        if self.media_type == self.MediaType.VIDEO:
+            if not self.video:
+                raise ValidationError({"video": "Video rasters require a video file."})
+            if self.image:
+                raise ValidationError({"image": "Video rasters cannot have an image."})
+
     def save(self, *args, **kwargs):
         is_new = self.pk is None
         key_changed = self.key != self._old_key and self._old_key
-        image_changed = self.image != self._old_image and self._old_image
 
-        # Save first to get a file path and PK
         super().save(*args, **kwargs)
 
-        if self.image and (is_new or image_changed or key_changed):
-            if key_changed and not image_changed:
-                self.rename_image()
-            self.generate_minimap()
-            self.generate_thumbnail()
-            super().save(update_fields=["image", "minimap", "thumbnail"])
+        if self.media_type == self.MediaType.IMAGE:
+            self._handle_image(key_changed, is_new)
+
+        elif self.media_type == self.MediaType.VIDEO:
+            self._handle_video(key_changed, is_new)
 
         self._old_key = self.key
+
+    def _handle_image(self, key_changed, is_new):
+        if not self.image:
+            return
+
+        image_changed = self.image != self._old_image and self._old_image
         self._old_image = self.image
+
+        if is_new or image_changed or key_changed:
+            if key_changed and not image_changed:
+                self.rename_image()
+
+            self.generate_minimap()
+            self.generate_thumbnail()
+
+            super().save(update_fields=["image", "minimap", "thumbnail"])
+
+    def _handle_video(self, key_changed, is_new):
+        if not self.video:
+            return
+
+        if key_changed:
+            self.rename_video()
+
+        self.generate_video_thumbnail()
+        self.generate_video_minimap()
+
+        super().save(update_fields=["video", "thumbnail", "minimap"])
 
     def rename_image(self):
         os.rename(self.image.path, self.get_output_path("rasters"))
         self.image.name = self.get_output_relpath("rasters")
 
+    def rename_video(self):
+        os.rename(self.video.path, self.get_output_path("videos"))
+        self.video.name = self.get_output_relpath("videos")
+
     def generate_minimap(self):
-        minimap = generate_minimap(self.image.path)
+        print("--- generate_minimap")
+        minimap = generate_minimap(self.media.path)
         path = self.get_output_path("minimaps")
         minimap.save(path, format="PNG")
         self.minimap.name = self.get_output_relpath("minimaps")
 
     def generate_thumbnail(self):
-        thumbnail = generate_thumbnail(self.image.path)
+        thumbnail = generate_thumbnail(self.media.path)
         path = self.get_output_path("thumbnails")
         thumbnail.save(path, format="PNG")
         self.thumbnail.name = self.get_output_relpath("thumbnails")
 
+    def generate_video_thumbnail(self):
+        thumbnail = generate_video_thumbnail(self.media.path)
+        thumbnail_path = self.get_output_path("thumbnails").replace(".mp4", ".png")
+        thumbnail.save(thumbnail_path, format="PNG")
+        self.thumbnail.name = self.get_output_relpath("thumbnails").replace(".mp4", ".png")
+
+    def generate_video_minimap(self):
+        minimap = generate_video_minimap(self.media.path)
+        minimap_path = self.get_output_path("minimaps").replace(".mp4", ".png")
+        minimap.save(minimap_path, format="PNG")
+        self.minimap.name = self.get_output_relpath("minimaps").replace(".mp4", ".png")
+
+
     def get_output_path(self, folder):
         ext = self.get_extension()
+        path = self.media.path
         folder_path = os.path.abspath(
-            os.path.join(os.path.dirname(self.image.path), "..", folder)
+            os.path.join(os.path.dirname(path), "..", folder)
         )
         os.makedirs(folder_path, exist_ok=True)
         return os.path.join(folder_path, f"{self.key}{ext}")
@@ -497,7 +610,17 @@ class Raster(models.Model):
         return os.path.join(folder, f"{self.key}{ext}")
 
     def get_extension(self):
-        return os.path.splitext(self.image.name)[1].lower()
+        return os.path.splitext(self.media.name)[1].lower()
+
+    @property
+    def media(self):
+        print("--- media type", self.media_type)
+        if self.media_type == "image":
+            return self.image
+        elif self.media_type == "video":
+            return self.video
+        else:
+            raise Exception("Unintended behavior")
 
     def __str__(self):
         return self.key
@@ -572,6 +695,8 @@ class LegendSymbol(models.Model):
 
 class LegendEntry(models.Model):
     class Meta:
+        verbose_name = "Legend entry"
+        verbose_name_plural = " Legend entries"
         ordering = ["order"]
 
     legend = models.ForeignKey(Legend, on_delete=models.CASCADE, related_name="entries")

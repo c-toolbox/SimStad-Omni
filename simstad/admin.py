@@ -8,6 +8,7 @@ from django.db import models
 from django.forms.widgets import Textarea
 from .models import (
     City,
+    FeaturedCollection,
     Collection,
     CollectionScenario,
     Scenario,
@@ -27,8 +28,17 @@ from .forms import BulkUploadForm, LegendJsonImportForm
 # --- City --- #
 
 
+class FeaturedCollectionInline(SortableInlineAdminMixin, admin.TabularInline):
+    model = FeaturedCollection
+    extra = 0
+    sortable_field_name = "order"
+
+
 @admin.register(City)
-class CityAdmin(TranslationAdmin):
+class CityAdmin(SortableAdminBase, TranslationAdmin):
+    inlines = [
+        FeaturedCollectionInline,
+    ]
     list_display = [
         "key",
         "name",
@@ -39,15 +49,29 @@ class CityAdmin(TranslationAdmin):
         "created_at",
         "changed_at",
     ]
-    fields = [
-        "key",
-        "name",
-        "service",
-        "min_x",
-        "min_y",
-        "max_x",
-        "max_y",
-        "default_blocks_video",
+    fieldsets = [
+        (
+            None,
+            {
+                "fields": (
+                    "key",
+                    "name",
+                    "service",
+                    "default_blocks_video",
+                ),
+            },
+        ),
+        (
+            "Coordinates",
+            {
+                "fields": (
+                    "min_x",
+                    "min_y",
+                    "max_x",
+                    "max_y",
+                ),
+            },
+        ),
     ]
 
     @admin.display(description="Collections")
@@ -227,16 +251,36 @@ class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
         "created_at",
         "changed_at",
     ]
-    fields = [
-        "key",
-        "name",
-        "short_name",
-        "description",
-        "city",
-        "legend",
-        "legend_image",
-        "legend_image_source",
-    ]
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "key",
+                    "name",
+                    "description",
+                    "city",
+                )
+            },
+        ),
+        (
+            "Legend",
+            {
+                "fields": (
+                    "legend",
+                    "legend_image",
+                    "legend_image_source",
+                ),
+            },
+        ),
+        (
+            "Advanced",
+            {
+                "fields": ("short_name",),
+                "classes": ("collapse",),
+            },
+        ),
+    )
 
     @admin.display(description="Collection")
     def collection(self, obj: Scenario):
@@ -295,17 +339,40 @@ class RasterAdmin(TranslationAdmin):
         "created_at",
         "changed_at",
     ]
-    fields = [
-        "key",
-        "name",
-        "notes",
-        "city",
-        "tags",
-        "image",
-        "minimap",
-        "thumbnail",
-        "image_preview",
-    ]
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "key",
+                    "name",
+                    "city",
+                    "tags",
+                    "notes",
+                )
+            },
+        ),
+        (
+            "Media",
+            {
+                "fields": (
+                    "media_type",
+                    "image",
+                    "video",
+                )
+            },
+        ),
+        (
+            "Generated assets",
+            {
+                "fields": (
+                    "minimap",
+                    "thumbnail",
+                    "image_preview",
+                ),
+            },
+        ),
+    )
     readonly_fields = [
         "minimap",
         "thumbnail",
