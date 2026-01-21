@@ -146,7 +146,7 @@ class LayerInline(SortableInlineAdminMixin, admin.StackedInline):
             None,
             {
                 "classes": ("layer-advanced",),
-                "fields": (("type",),),
+                "fields": (("type", "order"),),
             },
         ),
         (
