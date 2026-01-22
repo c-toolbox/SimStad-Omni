@@ -1,6 +1,4 @@
 (function () {
-    console.log("Script loaded!");
-
 	const LAYER_FIELDSETS = {
 		image: [".layer-media", ".layer-image"],
 		flow: [".layer-media", ".layer-flow"],

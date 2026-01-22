@@ -741,6 +741,20 @@ class LegendEntry(models.Model):
         return self.text
 
 
+class SequenceLabel(models.Model):
+    class Meta:
+        verbose_name = "Sequence label"
+        verbose_name_plural = " Sequence labels"
+        ordering = ["order"]
+
+    scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE, related_name="sequence_labels")
+    text = models.CharField(max_length=64)
+    order = models.PositiveIntegerField(default=0, editable=True, db_index=True)
+
+    def __str__(self):
+        return self.text
+
+
 # Localized strings for UI text that doesn't belong to any specific object
 class LocalizedString(models.Model):
     class Meta:

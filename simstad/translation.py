@@ -1,5 +1,5 @@
 from modeltranslation.translator import register, TranslationOptions
-from .models import City, Collection, Scenario, Raster, Tag, Legend, LegendEntry, LocalizedString
+from .models import City, Collection, Scenario, Raster, Tag, Legend, LegendEntry, SequenceLabel, LocalizedString
 
 
 @register(City)
@@ -34,6 +34,11 @@ class LegendTranslationOptions(TranslationOptions):
 
 @register(LegendEntry)
 class LegendEntryTranslationOptions(TranslationOptions):
+    fields = ("text",)
+
+
+@register(SequenceLabel)
+class SequenceLabelTranslationOptions(TranslationOptions):
     fields = ("text",)
 
 

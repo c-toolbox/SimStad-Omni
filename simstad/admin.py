@@ -11,6 +11,7 @@ from .models import (
     FeaturedCollection,
     Collection,
     CollectionScenario,
+    SequenceLabel,
     Scenario,
     Layer,
     Raster,
@@ -236,9 +237,17 @@ class LayerInline(SortableInlineAdminMixin, admin.StackedInline):
         css = {"all": ("simstad/admin/layer.css",)}
 
 
+class SequenceLabelInline(SortableInlineAdminMixin, TranslationTabularInline):
+    model = SequenceLabel
+    extra = 0
+    fields = ["text"]
+    sortable_field_name = "order"
+    classes = ("collapse",)
+
+
 @admin.register(Scenario)
 class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
-    inlines = [LayerInline]
+    inlines = [SequenceLabelInline, LayerInline]
     list_filter = ["city", "collections", "layer_display_mode"]
     list_display = [
         "key",
@@ -324,6 +333,10 @@ class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
         html += "</div>"
 
         return format_html(html)
+
+    class Media:
+        js = ("simstad/admin/sequence.js",)
+        css = {"all": ("simstad/admin/sequence.css",)}
 
 
 # --- Raster --- #

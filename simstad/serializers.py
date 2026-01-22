@@ -7,6 +7,7 @@ from .models import (
     Legend,
     LegendEntry,
     LegendSymbol,
+    SequenceLabel,
     Tag,
 )
 
@@ -19,6 +20,15 @@ class TagSerializer(serializers.ModelSerializer):
             "changed_at",
             "key",
             "name",
+        ]
+
+
+class SequenceLabelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SequenceLabel
+        fields = [
+            "text",
+            "order",
         ]
 
 
@@ -81,6 +91,7 @@ class RasterSerializer(serializers.ModelSerializer):
 class ScenarioSerializer(serializers.ModelSerializer):
     layers = serializers.SerializerMethodField()
     legend = serializers.SlugRelatedField(many=False, read_only=True, slug_field="key")
+    sequence_labels = SequenceLabelSerializer(many=True, read_only=True)
 
     class Meta:
         model = Scenario
@@ -96,6 +107,7 @@ class ScenarioSerializer(serializers.ModelSerializer):
             "legend",
             "legend_image",
             "legend_image_source",
+            "sequence_labels",
         ]
 
     def serialize_layer(self, layer):
@@ -110,7 +122,7 @@ class ScenarioSerializer(serializers.ModelSerializer):
         # Flow
         if layer.type == "flow":
             data["flow"] = {
-                "texture": layer.flow_texture.key,
+                "texture": layer.flow_texture.key if layer.flow_texture else None,
                 "scale": layer.flow_scale,
                 "speed": layer.flow_speed,
             }
