@@ -82,7 +82,9 @@ class RasterSerializer(serializers.ModelSerializer):
             "name",
             "notes",
             "tags",
+            "media_type",
             "image",
+            "video",
             "minimap",
             "thumbnail",
         ]
