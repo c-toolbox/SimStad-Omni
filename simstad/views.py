@@ -21,6 +21,7 @@ from .models import (
     Raster,
     Legend,
     LegendSymbol,
+    SequenceLabel,
     Tag,
     LocalizedString,
 )
@@ -260,6 +261,15 @@ def get_localization(request):
             localization_dict[f"scenario_{scenario.key}_legend_image_source"] = (
                 scenario.legend_image_source
             )
+
+        # Add SequenceLabel translations
+        localization_dict[f"scenario_{scenario.key}_sequence_title"] = scenario.sequence_title
+        for idx, entry in enumerate(scenario.sequence_labels.all()):
+            localization_dict[f"scenario_{scenario.key}_sequence_label_{entry.order}"] = entry.text
+
+    # Add Raster translations
+    for raster in Raster.objects.all():
+        localization_dict[f"raster_{raster.key}_name"] = raster.name
 
     # Add Legend translations
     for legend in Legend.objects.all():

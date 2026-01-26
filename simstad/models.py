@@ -227,6 +227,13 @@ class Scenario(models.Model):
         help_text="Determine whether layers are stacked or shown sequentially",
     )
 
+    sequence_title = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        help_text="Title for the sequence slider (only in sequential layer display mode)",
+    )
+
     def __str__(self):
         return self.key
 

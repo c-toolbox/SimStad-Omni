@@ -285,7 +285,7 @@ class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
         (
             "Advanced",
             {
-                "fields": ("short_name", "layer_display_mode"),
+                "fields": ("short_name", "layer_display_mode", "sequence_title"),
                 "classes": ("collapse",),
             },
         ),

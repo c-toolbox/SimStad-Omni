@@ -109,6 +109,7 @@ class ScenarioSerializer(serializers.ModelSerializer):
             "legend",
             "legend_image",
             "legend_image_source",
+            "sequence_title",
             "sequence_labels",
         ]
 
