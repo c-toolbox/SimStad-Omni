@@ -255,15 +255,18 @@ def get_localization(request):
     # Add Scenario translations
     for scenario in Scenario.objects.all():
         localization_dict[f"scenario_{scenario.key}_name"] = scenario.name
-        localization_dict[f"scenario_{scenario.key}_short_name"] = scenario.short_name
         localization_dict[f"scenario_{scenario.key}_description"] = scenario.description
+
+        if scenario.short_name:
+            localization_dict[f"scenario_{scenario.key}_short_name"] = scenario.short_name
         if scenario.legend_image_source:
             localization_dict[f"scenario_{scenario.key}_legend_image_source"] = (
                 scenario.legend_image_source
             )
 
         # Add SequenceLabel translations
-        localization_dict[f"scenario_{scenario.key}_sequence_title"] = scenario.sequence_title
+        if scenario.sequence_title:
+            localization_dict[f"scenario_{scenario.key}_sequence_title"] = scenario.sequence_title
         for idx, entry in enumerate(scenario.sequence_labels.all()):
             localization_dict[f"scenario_{scenario.key}_sequence_label_{entry.order}"] = entry.text
 
