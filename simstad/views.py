@@ -1,6 +1,7 @@
 from django.http import JsonResponse, Http404
 from django.shortcuts import render
 from django.utils.translation import activate
+from django.views.decorators.clickjacking import xframe_options_exempt
 from functools import wraps
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -38,6 +39,7 @@ def index(request):
     )
 
 
+@xframe_options_exempt
 def legend_page(request, scenario_key):
     activate(request.GET.get("language", "sv"))
 
