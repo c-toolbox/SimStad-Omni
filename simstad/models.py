@@ -53,6 +53,20 @@ class City(models.Model):
         default=6500000, help_text="Maximum Y coordinate (SWEREF 99 TM)"
     )
 
+    ORIENTATION_CHOICES = [
+        ("north", "North"),
+        ("east", "East"),
+        ("south", "South"),
+        ("west", "West"),
+    ]
+
+    orientation = models.CharField(
+        max_length=8,
+        choices=ORIENTATION_CHOICES,
+        default="north",
+        help_text="The cardinal direction the interface is oriented towards relative to the city model",
+    )
+
     default_blocks_video = models.CharField(
         max_length=255,
         blank=True,

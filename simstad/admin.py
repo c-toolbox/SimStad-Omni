@@ -70,6 +70,7 @@ class CityAdmin(SortableAdminBase, TranslationAdmin):
                     "min_y",
                     "max_x",
                     "max_y",
+                    "orientation",
                 ),
             },
         ),
