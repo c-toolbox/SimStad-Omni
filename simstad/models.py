@@ -67,6 +67,13 @@ class City(models.Model):
         help_text="The cardinal direction the interface is oriented towards relative to the city model",
     )
 
+    raster_width = models.PositiveIntegerField(
+        default=5120, help_text="Width of the city in pixels"
+    )
+    raster_height = models.PositiveIntegerField(
+        default=3850, help_text="Height of the city in pixels"
+    )
+
     default_blocks_video = models.CharField(
         max_length=255,
         blank=True,
@@ -488,6 +495,7 @@ def upload_raster(instance, filename):
     new_filename = f"{instance.key}{ext.lower()}"
     return f"rasters/{new_filename}"
 
+
 def upload_video(instance, filename):
     ext = os.path.splitext(filename)[1].lower()
     return f"videos/{instance.key}{ext}"
@@ -650,7 +658,6 @@ class Raster(models.Model):
         minimap.save(minimap_path, format="PNG")
         self.minimap.name = self.get_output_relpath("minimaps").replace(".mp4", ".png")
 
-
     def get_output_path(self, folder):
         ext = self.get_extension()
         path = self.media.path
@@ -768,7 +775,9 @@ class SequenceLabel(models.Model):
         verbose_name_plural = " Sequence labels"
         ordering = ["order"]
 
-    scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE, related_name="sequence_labels")
+    scenario = models.ForeignKey(
+        Scenario, on_delete=models.CASCADE, related_name="sequence_labels"
+    )
     text = models.CharField(max_length=64)
     order = models.PositiveIntegerField(default=0, editable=True, db_index=True)
 

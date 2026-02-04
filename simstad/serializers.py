@@ -207,6 +207,8 @@ class CitySerializer(serializers.ModelSerializer):
             "max_x",
             "max_y",
             "orientation",
+            "raster_width",
+            "raster_height",
             "default_blocks_video",
             "collections",
             "featured_collections",
