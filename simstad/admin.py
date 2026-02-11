@@ -40,6 +40,7 @@ class CityAdmin(SortableAdminBase, TranslationAdmin):
     inlines = [
         FeaturedCollectionInline,
     ]
+    ordering = ["-changed_at"]
     list_display = [
         "key",
         "name",
@@ -107,6 +108,7 @@ class CollectionScenarioInline(SortableInlineAdminMixin, admin.TabularInline):
 class CollectionAdmin(SortableAdminBase, TranslationAdmin):
     inlines = [CollectionScenarioInline]
     list_filter = ["city"]
+    ordering = ["-changed_at"]
     list_display = [
         "key",
         "name",
@@ -252,6 +254,7 @@ class SequenceLabelInline(SortableInlineAdminMixin, TranslationTabularInline):
 class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
     inlines = [SequenceLabelInline, LayerInline]
     list_filter = ["city", "collections", "layer_display_mode"]
+    ordering = ["-changed_at"]
     list_display = [
         "key",
         "name",
@@ -349,6 +352,7 @@ class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
 class RasterAdmin(TranslationAdmin):
     change_list_template = "admin/raster_change_list.html"
     list_filter = ["city", "scenarios", "tags"]
+    ordering = ["-changed_at"]
     list_display = [
         "key",
         "name",
@@ -481,6 +485,7 @@ class RasterAdmin(TranslationAdmin):
 
 @admin.register(Tag)
 class TagAdmin(TranslationAdmin):
+    ordering = ["-changed_at"]
     list_display = [
         "key",
         "name_en",
@@ -509,6 +514,7 @@ class LegendEntryInline(SortableInlineAdminMixin, TranslationTabularInline):
 class LegendAdmin(SortableAdminBase, TranslationAdmin):
     change_list_template = "admin/legend_change_list.html"
     inlines = [LegendEntryInline]
+    ordering = ["-changed_at"]
     list_display = [
         "key",
         "title",
@@ -597,6 +603,7 @@ class LegendAdmin(SortableAdminBase, TranslationAdmin):
 class LegendSymbolAdmin(admin.ModelAdmin):
     model = LegendSymbol
     extra = 0
+    ordering = ["-changed_at"]
     list_display = [
         "key",
         "image_preview",
