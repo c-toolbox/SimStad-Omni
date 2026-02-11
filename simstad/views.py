@@ -57,6 +57,42 @@ def legend_page(request, scenario_key):
     return render(request, "simstad/legend.html", context)
 
 
+@xframe_options_exempt
+def dual_legend_page(request, scenario_key1, scenario_key2):
+    activate(request.GET.get("language", "sv"))
+    orientation = request.GET.get("orientation", "left")
+
+    # Fetch scenarios
+    scenario1 = None
+    scenario2 = None
+
+    if Scenario.objects.filter(key=scenario_key1).exists():
+        scenario1 = Scenario.objects.get(key=scenario_key1)
+    else:
+        scenario1 = {
+            "name": scenario_key1,
+            "legend": None,
+            "legend_image": None,
+        }
+
+    if Scenario.objects.filter(key=scenario_key2).exists():
+        scenario2 = Scenario.objects.get(key=scenario_key2)
+    else:
+        scenario2 = {
+            "name": scenario_key2,
+            "legend": None,
+            "legend_image": None,
+        }
+
+    context = {
+        "scenario1": scenario1,
+        "scenario2": scenario2,
+        "orientation": orientation,
+    }
+
+    return render(request, "simstad/dual-legend.html", context)
+
+
 # --- Decorators --- #
 
 

@@ -19,5 +19,6 @@ urlpatterns = [
 	path("get_tags/", views.get_tags),
 	path("get_tag/<str:tag_key>/", views.get_tag),
 	path("get_localization/", views.get_localization),
+	path("legend/<str:scenario_key1>/<str:scenario_key2>/", views.dual_legend_page),
 	path("legend/<str:scenario_key>/", views.legend_page),
 ]
