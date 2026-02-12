@@ -155,6 +155,9 @@ class ScenarioSerializer(serializers.ModelSerializer):
         if layer.emission is not None and layer.emission != 0.0:
             data["emission"] = layer.emission
 
+        if layer.locked_order:
+            data["locked_order"] = layer.locked_order
+
         crop = layer.get_crop_data()
         if crop:
             data["crop"] = crop
