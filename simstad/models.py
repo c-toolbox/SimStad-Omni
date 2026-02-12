@@ -498,7 +498,7 @@ def upload_raster(instance, filename):
 
 def upload_video(instance, filename):
     ext = os.path.splitext(filename)[1].lower()
-    return f"videos/{instance.key}{ext}"
+    return f"rasters/{instance.key}{ext}"
 
 
 class Raster(models.Model):
