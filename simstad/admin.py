@@ -205,7 +205,7 @@ class LayerInline(SortableInlineAdminMixin, admin.StackedInline):
             "Advanced",
             {
                 "classes": ("collapse",),
-                "fields": (("opacity", "emission", "crop_type"),),
+                "fields": (("opacity", "emission", "crop_type", "locked_order"),),
             },
         ),
         (
@@ -325,7 +325,12 @@ class ScenarioAdmin(SortableAdminBase, TranslationAdmin):
         # Get all rasters with their order
         layers = Layer.objects.filter(scenario=obj).order_by("order")
         if obj.layer_display_mode == "sequential":
-            layers = [layers.last()]
+            locked_layers = layers.filter(locked_order=True)
+            last_sequential = layers.filter(locked_order=False).last()
+
+            layers = list(locked_layers)
+            if last_sequential:
+                layers.append(last_sequential)
 
         html = '<div style="position: relative; height: 64px;">'
         for layer in layers:

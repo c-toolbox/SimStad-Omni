@@ -311,6 +311,11 @@ class Layer(models.Model):
         help_text="Self-illumination",
     )
 
+    locked_order = models.BooleanField(
+        default=False,
+        help_text="Locked order in sequence"
+    )
+
     # Crop Fields (Discriminated by crop_type)
     CROP_CHOICES = [
         ("none", "No Crop"),
