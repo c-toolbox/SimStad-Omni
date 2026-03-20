@@ -60,7 +60,7 @@ def legend_page(request, scenario_key):
 @xframe_options_exempt
 def dual_legend_page(request, scenario_key1, scenario_key2):
     activate(request.GET.get("language", "sv"))
-    orientation = request.GET.get("orientation", "left")
+    direction = request.GET.get("direction", "lr")
 
     # Fetch scenarios
     scenario1 = None
@@ -87,7 +87,7 @@ def dual_legend_page(request, scenario_key1, scenario_key2):
     context = {
         "scenario1": scenario1,
         "scenario2": scenario2,
-        "orientation": orientation,
+        "direction": direction,
     }
 
     return render(request, "simstad/dual-legend.html", context)

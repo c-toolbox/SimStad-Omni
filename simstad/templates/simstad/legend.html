@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
@@ -42,24 +42,24 @@
 			.container {
 				display: grid;
 				grid-template-columns: minmax(60%, 70%) minmax(30%, 40%);
-				gap: 40px;
 				width: 100%;
 				height: 100%;
-				padding: 70px;
+				padding: 70px 50px;
 				background: #1e293b;
 				border-radius: 16px;
 				box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
 			}
 
 			.left-section {
+				margin-right: 20px;
 				display: flex;
 				flex-direction: column;
-				gap: 20px;
 				height: 100%;
 				overflow: hidden;
 			}
 
 			.right-section {
+				margin-left: 20px;
 				display: flex;
 				flex-direction: column;
 				min-width: 450px;
@@ -72,10 +72,11 @@
 				width: 100%;
 				padding: 8px;
 				overflow: hidden;
+				margin-bottom: 20px;
 			}
 
 			h1 {
-				margin: 0 0 0.3em 0;
+				margin: 0;
 				font-size: 90px;
 				font-weight: 500;
 				line-height: 1;
@@ -146,13 +147,13 @@
 				display: grid;
 				grid-template-columns: auto 1fr;
 				align-items: center;
-				gap: 24px;
 				flex-grow: 1;
 				max-height: 48px;
 				overflow: hidden;
 			}
 
 			.legend-symbol-container {
+				margin-right: 24px;
 				height: 100%;
 				aspect-ratio: 2 / 1;
 				align-content: center;
@@ -250,7 +251,7 @@
 								<script>
 									(function () {
 										const canvas = document.getElementById(
-											"symbol-{{ entry.id }}"
+											"symbol-{{ entry.id }}",
 										);
 										const ctx = canvas.getContext("2d");
 										const img = new Image();
@@ -309,7 +310,9 @@
 				// Helper function to get the current computed font size
 				function getSize(element) {
 					return parseFloat(
-						window.getComputedStyle(element, null).getPropertyValue("font-size")
+						window
+							.getComputedStyle(element, null)
+							.getPropertyValue("font-size"),
 					);
 				}
 
@@ -370,12 +373,12 @@
 				autoResizeIndividual(
 					document.querySelector(".description"),
 					true,
-					true
+					true,
 				);
 				autoResizeIndividual(
 					document.querySelector(".legend-title"),
 					true,
-					false
+					false,
 				);
 
 				// -----------------------------------------------------------------
@@ -393,7 +396,12 @@
 
 				// Apply the calculated gap to the container
 				if (legendEntriesContainer) {
-					legendEntriesContainer.style.gap = gapInPixels + "px";
+					const entries = legendEntriesContainer.querySelectorAll(".legend-entry");
+					entries.forEach((entry, index) => {
+						if (index < entries.length - 1) {
+							entry.style.marginBottom = gapInPixels + "px";
+						}
+					});
 				}
 
 				// -----------------------------------------------------------------

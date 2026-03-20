@@ -43,8 +43,7 @@
 				width: 100%;
 				height: 100%;
 				display: grid;
-				gap: 40px;
-				padding: 70px;
+				padding: 70px 50px;
 				background: #1e293b;
 				border-radius: 16px;
 				box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
@@ -61,9 +60,10 @@
 
 			/* Scenario section */
 			.scenario-section {
+				margin: 0 20px;
+
 				display: grid;
 				grid-template-rows: auto 1fr;
-				gap: 20px;
 				overflow: hidden;
 			}
 
@@ -74,7 +74,7 @@
 				overflow: hidden;
 				display: flex;
 				align-items: center;
-				gap: 16px;
+				margin-bottom: 20px;
 			}
 
 			.title-arrow {
@@ -113,6 +113,7 @@
 
 			h1 {
 				margin: 0;
+				margin-right: 16px;
 				font-size: 64px;
 				font-weight: 500;
 				line-height: 1;
@@ -163,13 +164,13 @@
 				display: grid;
 				grid-template-columns: auto 1fr;
 				align-items: center;
-				gap: 24px;
 				flex-grow: 1;
 				max-height: 48px;
 				overflow: hidden;
 			}
 
 			.legend-symbol-container {
+				margin-right: 24px;
 				height: 100%;
 				aspect-ratio: 2 / 1;
 				align-content: center;
@@ -236,15 +237,15 @@
 	</head>
 	<body>
 		<div
-			class="container {% if orientation in 'rightdown' %}order-reversed{% endif %}"
+			class="container {% if direction in 'rltb' %}order-reversed{% endif %}"
 		>
 			<!-- Scenario 1 -->
 			<div class="scenario-section">
 				<div class="title-container">
 					<h1>{{ scenario1.name }}</h1>
-					{% if orientation == "up" %}
+					{% if direction == "tb" %}
 					<span class="title-arrow up"></span>
-					{% elif orientation == "down" %}
+					{% elif direction == "bt" %}
 					<span class="title-arrow down"></span>
 					{% endif %}
 				</div>
@@ -333,9 +334,9 @@
 			<div class="scenario-section">
 				<div class="title-container">
 					<h1>{{ scenario2.name }}</h1>
-					{% if orientation == "up" %}
+					{% if direction == "tb" %}
 					<span class="title-arrow down"></span>
-					{% elif orientation == "down" %}
+					{% elif direction == "bt" %}
 					<span class="title-arrow up"></span>
 					{% endif %}
 				</div>
@@ -517,7 +518,12 @@
 					const gapInPixels = Math.max(32 - 4 * entriesOverThreshold, 4);
 
 					// Apply the gap
-					entriesContainer.style.gap = gapInPixels + "px";
+					const entries = entriesContainer.querySelectorAll(".legend-entry");
+					entries.forEach((entry, index) => {
+						if (index < entries.length - 1) {
+							entry.style.marginBottom = gapInPixels + "px";
+						}
+					});
 
 					// Use a short delay to ensure layout is updated
 					setTimeout(() => {
