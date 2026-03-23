@@ -278,50 +278,61 @@ def get_tag(request, tag_key):
 def get_localization(request):
     localization_dict = {}
 
-    # Add LocalizedString entries
-    for localizedString in LocalizedString.objects.all():
-        localization_dict[localizedString.key] = localizedString.text
+    # Localized strings
+    for row in LocalizedString.objects.values("key", "text"):
+        localization_dict[row["key"]] = row["text"]
 
-    # Add City translations
-    for city in City.objects.all():
-        localization_dict[f"city_{city.key}_name"] = city.name
+    # Cities
+    for row in City.objects.values("key", "name"):
+        localization_dict[f"city_{row['key']}_name"] = row["name"]
 
-    # Add Collection translations
-    for collection in Collection.objects.all():
-        localization_dict[f"collection_{collection.key}_name"] = collection.name
+    # Collections
+    for row in Collection.objects.values("key", "name"):
+        localization_dict[f"collection_{row['key']}_name"] = row["name"]
 
-    # Add Scenario translations
-    for scenario in Scenario.objects.all():
-        localization_dict[f"scenario_{scenario.key}_name"] = scenario.name
-        localization_dict[f"scenario_{scenario.key}_description"] = scenario.description
+    # Scenarios (prefetch sequence_labels)
+    scenarios = Scenario.objects.prefetch_related("sequence_labels")
+
+    for scenario in scenarios:
+        key = scenario.key
+
+        localization_dict[f"scenario_{key}_name"] = scenario.name
+        localization_dict[f"scenario_{key}_description"] = scenario.description
 
         if scenario.short_name:
-            localization_dict[f"scenario_{scenario.key}_short_name"] = scenario.short_name
+            localization_dict[f"scenario_{key}_short_name"] = scenario.short_name
+
         if scenario.legend_image_source:
-            localization_dict[f"scenario_{scenario.key}_legend_image_source"] = (
+            localization_dict[f"scenario_{key}_legend_image_source"] = (
                 scenario.legend_image_source
             )
 
-        # Add SequenceLabel translations
         if scenario.sequence_title:
-            localization_dict[f"scenario_{scenario.key}_sequence_title"] = scenario.sequence_title
-        for idx, entry in enumerate(scenario.sequence_labels.all()):
-            localization_dict[f"scenario_{scenario.key}_sequence_label_{entry.order}"] = entry.text
+            localization_dict[f"scenario_{key}_sequence_title"] = (
+                scenario.sequence_title
+            )
 
-    # Add Raster translations
-    for raster in Raster.objects.all():
-        localization_dict[f"raster_{raster.key}_name"] = raster.name
+        for entry in scenario.sequence_labels.all():
+            localization_dict[f"scenario_{key}_sequence_label_{entry.order}"] = (
+                entry.text
+            )
 
-    # Add Legend translations
-    for legend in Legend.objects.all():
-        localization_dict[f"legend_{legend.key}_title"] = legend.title
+    # Rasters
+    for row in Raster.objects.values("key", "name"):
+        localization_dict[f"raster_{row['key']}_name"] = row["name"]
 
-        # Add LegendEntry translations
+    # Legends (prefetch entries)
+    legends = Legend.objects.prefetch_related("entries")
+
+    for legend in legends:
+        key = legend.key
+        localization_dict[f"legend_{key}_title"] = legend.title
+
         for idx, entry in enumerate(legend.entries.all()):
-            localization_dict[f"legend_{legend.key}_{idx+1}_text"] = entry.text
+            localization_dict[f"legend_{key}_{idx+1}_text"] = entry.text
 
-    # Add Tag translations
-    for tag in Tag.objects.all():
-        localization_dict[f"tag_{tag.key}"] = tag.name
+    # Tags
+    for row in Tag.objects.values("key", "name"):
+        localization_dict[f"tag_{row['key']}"] = row["name"]
 
     return Response(localization_dict)
