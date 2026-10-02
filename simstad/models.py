@@ -41,16 +41,16 @@ class City(models.Model):
     )
 
     min_x = models.FloatField(
-        default=130000, help_text="Minimum X coordinate (SWEREF 99 TM)"
+        default=130000, help_text="Minimum easting coordinate (SWEREF99 16 30, EPSF:3010)"
     )
     min_y = models.FloatField(
-        default=6400000, help_text="Minimum Y coordinate (SWEREF 99 TM)"
+        default=6400000, help_text="Minimum northing coordinate (SWEREF99 16 30, EPSF:3010)"
     )
     max_x = models.FloatField(
-        default=140000, help_text="Maximum X coordinate (SWEREF 99 TM)"
+        default=140000, help_text="Maximum easting coordinate (SWEREF99 16 30, EPSF:3010)"
     )
     max_y = models.FloatField(
-        default=6500000, help_text="Maximum Y coordinate (SWEREF 99 TM)"
+        default=6500000, help_text="Maximum northing coordinate (SWEREF99 16 30, EPSF:3010)"
     )
 
     ORIENTATION_CHOICES = [
@@ -637,7 +637,6 @@ class Raster(models.Model):
         self.video.name = self.get_output_relpath("videos")
 
     def generate_minimap(self):
-        print("--- generate_minimap")
         minimap = generate_minimap(self.media.path)
         path = self.get_output_path("minimaps")
         minimap.save(path, format="PNG")
@@ -679,7 +678,6 @@ class Raster(models.Model):
 
     @property
     def media(self):
-        print("--- media type", self.media_type)
         if self.media_type == "image":
             return self.image
         elif self.media_type == "video":
