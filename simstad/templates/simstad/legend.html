@@ -227,7 +227,6 @@
 		<div class="container">
 			<!-- Left Section: Title & Description -->
 			<div class="left-section">
-				<div>{{ request.META.HTTP_USER_AGENT }}</div>
 				<div class="title-container">
 					<h1>{{ scenario.name }}</h1>
 				</div>
@@ -378,7 +377,7 @@
 
 					// One shared size on the list: text and (em-sized) symbols scale together.
 					var size = 40;
-					list.style.fontSize = size + "px";
+					var size = 56;
 					while (!fits() && size > MIN_SIZE) {
 						size -= 1;
 						list.style.fontSize = size + "px";
