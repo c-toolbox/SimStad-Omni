@@ -38,10 +38,10 @@
 				text-shadow: 0 2px 4px black;
 			}
 
-			/* Layout */
+			/* Layout (flexbox + absolute positioning only, for old CEF compatibility) */
 			.container {
-				display: grid;
-				grid-template-columns: minmax(60%, 70%) minmax(30%, 40%);
+				display: flex;
+				flex-direction: row;
 				width: 100%;
 				height: 100%;
 				padding: 70px 50px;
@@ -51,25 +51,26 @@
 			}
 
 			.left-section {
+				flex: 0 0 62%;
+				min-width: 0;
 				margin-right: 20px;
 				display: flex;
 				flex-direction: column;
-				height: 100%;
 				overflow: hidden;
 			}
 
 			.right-section {
+				flex: 1 1 auto;
+				min-width: 450px;
 				margin-left: 20px;
 				display: flex;
 				flex-direction: column;
-				min-width: 450px;
-				height: 100%;
 				overflow: hidden;
 			}
 
 			/* Left Section: Title & Description */
 			.title-container {
-				width: 100%;
+				flex: 0 0 auto;
 				padding: 8px;
 				overflow: hidden;
 				margin-bottom: 20px;
@@ -85,7 +86,8 @@
 			}
 
 			.description-container {
-				flex-grow: 1;
+				flex: 1 1 0px;
+				min-height: 0;
 				padding: 4px;
 				overflow: hidden;
 			}
@@ -105,21 +107,21 @@
 
 			/* Right Section: Legend Box */
 			.legend-box {
-				display: grid;
-				grid-template-rows: auto 1fr;
-				flex-grow: 1;
+				flex: 1 1 0px;
+				min-height: 0;
+				display: flex;
+				flex-direction: column;
 				padding: 40px;
 				background: #0f172a;
 				border-radius: 16px;
-				backdrop-filter: blur(6px);
 				box-shadow: 0 0 20px rgba(0, 0, 0, 0.25);
 				overflow: hidden;
 			}
 
 			.legend-title-container {
-				width: 100%;
+				flex: 0 0 auto;
 				margin-bottom: 30px;
-				border-bottom: 2px solid #ffffff77;
+				border-bottom: 2px solid rgba(255, 255, 255, 0.47);
 				overflow: hidden;
 			}
 
@@ -132,70 +134,86 @@
 
 			/* Legend Entries */
 			.legend-entries-container {
+				flex: 1 1 0px;
+				min-height: 0;
 				position: relative;
 				overflow: hidden;
 			}
 
+			/* Absolutely positioned so it gets a definite height in old Chromium */
 			.legend-entries {
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
 				display: flex;
 				flex-direction: column;
-				height: 100%;
+				justify-content: flex-start;
+				font-size: 40px;
 				overflow: hidden;
 			}
 
 			.legend-entry {
-				display: grid;
-				grid-template-columns: auto 1fr;
+				flex: 0 0 auto;
+				display: flex;
+				flex-direction: row;
 				align-items: center;
-				flex-grow: 1;
-				max-height: 48px;
-				overflow: hidden;
 			}
 
+			/* Sized in em so all symbols scale uniformly with the shared font size */
 			.legend-symbol-container {
-				margin-right: 24px;
-				height: 100%;
-				aspect-ratio: 2 / 1;
-				align-content: center;
+				flex: 0 0 auto;
+				width: 2.4em;
+				height: 1.2em;
+				margin-right: 0.6em;
+				-webkit-filter: drop-shadow(0 2px 4px black);
 				filter: drop-shadow(0 2px 4px black);
 			}
 
 			.legend-symbol {
+				display: block;
 				width: 100%;
-				aspect-ratio: 2 / 1;
-				object-fit: contain;
-				object-position: center;
-				contain: size;
+				height: 100%;
 			}
 
 			.legend-text-container {
-				height: 100%;
-				overflow: hidden;
-				align-content: center;
+				flex: 1 1 auto;
+				min-width: 0;
 			}
 
 			.legend-text {
-				font-size: 40px;
-				line-height: 1;
-				white-space: nowrap;
+				display: -webkit-box;
+				-webkit-box-orient: vertical;
+				-webkit-line-clamp: 2;
+				line-height: 1.1;
+				max-height: 2.2em;
+				overflow: hidden;
+				word-wrap: break-word;
 				text-shadow: 0 2px 4px black;
 			}
 
 			/* Alternative Legend: Image */
 			.legend-image-container {
+				flex: 1 1 0px;
+				min-height: 0;
+				position: relative;
 				overflow: hidden;
-				flex-grow: 1;
-				display: flex;
-				justify-content: center;
 			}
 
 			.legend-image {
+				position: absolute;
+				top: 0;
+				left: 50%;
 				height: 100%;
+				-webkit-transform: translateX(-50%);
+				transform: translateX(-50%);
 				border-radius: 12px;
 				box-shadow: 0 2px 4px black;
 			}
 
 			.legend-source {
+				flex: 0 0 auto;
 				margin-top: 20px;
 				color: #e2e8f0;
 				font-size: 24px;
@@ -209,6 +227,7 @@
 		<div class="container">
 			<!-- Left Section: Title & Description -->
 			<div class="left-section">
+				<div>{{ request.META.HTTP_USER_AGENT }}</div>
 				<div class="title-container">
 					<h1>{{ scenario.name }}</h1>
 				</div>
@@ -244,9 +263,7 @@
 									></canvas>
 								</div>
 								<div class="legend-text-container">
-									<span id="text-{{ entry.id }}" class="legend-text">
-										{{ entry.text }}
-									</span>
+									<div id="text-{{ entry.id }}" class="legend-text">{{ entry.text }}</div>
 								</div>
 								<script>
 									(function () {
@@ -255,11 +272,12 @@
 										);
 										const ctx = canvas.getContext("2d");
 										const img = new Image();
-										const color = "{{ entry.color }}";
+										const color = "{{ entry.color }}".toUpperCase();
 
 										img.onload = function () {
 											ctx.drawImage(img, 0, 0, 128, 64);
 
+											// White means "keep original texture", ColorField may store lowercase
 											if (color !== "#FFFFFF") {
 												const imageData = ctx.getImageData(0, 0, 128, 64);
 												const data = imageData.data;
@@ -306,125 +324,89 @@
 		</div>
 
 		<script>
-			document.addEventListener("DOMContentLoaded", () => {
-				// Helper function to get the current computed font size
+			// ES5 only: the exhibition runs an old CEF build.
+			(function () {
+				var MIN_SIZE = 12;
+
 				function getSize(element) {
 					return parseFloat(
-						window
-							.getComputedStyle(element, null)
-							.getPropertyValue("font-size"),
+						window.getComputedStyle(element, null).getPropertyValue("font-size"),
 					);
 				}
 
-				// Function to calculate the required fitting size for a single element
-				function calculateRequiredSize(element) {
-					const minSize = 12;
-					const parent = element.parentElement;
+				// Shrink font size synchronously until the element fits its parent.
+				function shrinkToFit(element, checkWidth, checkHeight) {
+					if (!element) return;
+					var parent = element.parentElement;
+					var size = getSize(element);
 
-					// 1. Calculate max size based on parent height (95% for safety)
-					const parentHeight = parent.clientHeight;
-					let size = parentHeight * 0.95;
-
-					// Set the initial size to the maximum height-based size
-					element.style.fontSize = size + "px";
-
-					// 2. Shrink loop: Check for width overflow and decrease size if necessary.
-					// Temporarily hide for accurate width calculation without screen jitter
-					const originalDisplay = element.style.display;
-					element.style.display = "inline-block";
-					const originalVisibility = element.style.visibility;
-					element.style.visibility = "hidden";
-
-					// Shrink until it fits the width or hits minSize
-					while (element.scrollWidth > parent.clientWidth && size > minSize) {
-						size -= 1; // Decrease size by 1px
-						element.style.fontSize = size + "px";
+					function fits() {
+						return (
+							(!checkHeight || element.scrollHeight <= parent.clientHeight) &&
+							(!checkWidth || element.scrollWidth <= parent.clientWidth)
+						);
 					}
 
-					// Restore original styles
-					element.style.display = originalDisplay;
-					element.style.visibility = originalVisibility;
-
-					return Math.max(size, minSize); // Return the final required size
-				}
-
-				// --- Individual Auto-Resize for main elements (no change) ---
-				function autoResizeIndividual(element, checkWidth, checkHeight) {
-					let size = getSize(element);
-					const minSize = 12;
-					const parent = element.parentElement;
-
-					const fits = () =>
-						(!checkHeight || element.scrollHeight <= parent.clientHeight) &&
-						(!checkWidth || element.scrollWidth <= parent.clientWidth);
-
-					function resize() {
+					while (!fits() && size > MIN_SIZE) {
+						size -= 1;
 						element.style.fontSize = size + "px";
-						if (!fits() && size > minSize) {
-							size--;
-							requestAnimationFrame(resize);
-						}
 					}
-					resize();
 				}
 
-				// Apply individual resize to main elements
-				autoResizeIndividual(document.querySelector("h1"), true, true);
-				autoResizeIndividual(
-					document.querySelector(".description"),
-					true,
-					true,
-				);
-				autoResizeIndividual(
-					document.querySelector(".legend-title"),
-					true,
-					false,
-				);
+				function fitLegendEntries() {
+					var list = document.querySelector(".legend-entries");
+					if (!list) return;
 
-				// -----------------------------------------------------------------
-				// New Dynamic Gap Calculation
-				// -----------------------------------------------------------------
-				const legendEntriesContainer =
-					document.querySelector(".legend-entries");
-				const legendEntryElements = document.querySelectorAll(".legend-entry");
-				const entryCount = legendEntryElements.length;
+					var entries = list.querySelectorAll(".legend-entry");
+					var texts = list.querySelectorAll(".legend-text");
+					var gap = Math.max(32 - 4 * Math.max(entries.length - 8, 0), 4);
+					var i;
 
-				// Calculate the gap size using the provided formula:
-				// gap = max((32 - 4 * min(entryCount-8, 0)), 0)
-				const entriesOverThreshold = Math.max(entryCount - 8, 0); // min(entryCount-8, 0) is inverted to max(entryCount-8, 0)
-				const gapInPixels = Math.max(32 - 4 * entriesOverThreshold, 4);
+					for (i = 0; i < entries.length - 1; i++) {
+						entries[i].style.marginBottom = gap + "px";
+					}
 
-				// Apply the calculated gap to the container
-				if (legendEntriesContainer) {
-					const entries = legendEntriesContainer.querySelectorAll(".legend-entry");
-					entries.forEach((entry, index) => {
-						if (index < entries.length - 1) {
-							entry.style.marginBottom = gapInPixels + "px";
+					function fits() {
+						if (list.scrollHeight > list.clientHeight) return false;
+						for (var j = 0; j < texts.length; j++) {
+							// Text clamped beyond 2 lines, or a single word too wide.
+							if (texts[j].scrollHeight > texts[j].clientHeight + 1) return false;
+							if (texts[j].scrollWidth > texts[j].clientWidth + 1) return false;
 						}
-					});
+						return true;
+					}
+
+					// One shared size on the list: text and (em-sized) symbols scale together.
+					var size = 40;
+					list.style.fontSize = size + "px";
+					while (!fits() && size > MIN_SIZE) {
+						size -= 1;
+						list.style.fontSize = size + "px";
+					}
 				}
 
-				// -----------------------------------------------------------------
-				// Uniform Legend Text Sizing (Requires the layout to be updated first)
-				// -----------------------------------------------------------------
-				const legendTextElements = document.querySelectorAll(".legend-text");
-				let globalMinSize = 40;
+				function run() {
+					shrinkToFit(document.querySelector("h1"), true, true);
+					shrinkToFit(document.querySelector(".description"), true, true);
+					shrinkToFit(document.querySelector(".legend-title"), true, false);
+					fitLegendEntries();
+				}
 
-				// 1. Calculate the required size for ALL elements and find the minimum.
-				// Use a short delay to ensure the browser has applied the new `gap` style
-				// and updated the layout before calculating element heights.
-				setTimeout(() => {
-					legendTextElements.forEach((textElement) => {
-						const requiredSize = calculateRequiredSize(textElement);
-						globalMinSize = Math.min(globalMinSize, requiredSize);
-					});
+				function start() {
+					// Wait for the web font so measurements match the final rendering.
+					if (document.fonts && document.fonts.ready) {
+						document.fonts.ready.then(run, run);
+					} else {
+						run();
+					}
+				}
 
-					// 2. Apply the single, uniform size to ALL legend entries.
-					legendTextElements.forEach((textElement) => {
-						textElement.style.fontSize = globalMinSize + "px";
-					});
-				}, 50); // 50ms is usually enough to re-render the layout
-			});
+				if (document.readyState === "complete") {
+					start();
+				} else {
+					window.addEventListener("load", start);
+				}
+			})();
 		</script>
 	</body>
 </html>
