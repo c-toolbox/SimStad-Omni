@@ -376,8 +376,8 @@
 					}
 
 					// One shared size on the list: text and (em-sized) symbols scale together.
-					var size = 40;
 					var size = 56;
+					list.style.fontSize = size + "px";
 					while (!fits() && size > MIN_SIZE) {
 						size -= 1;
 						list.style.fontSize = size + "px";
