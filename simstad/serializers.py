@@ -69,6 +69,13 @@ class LegendSerializer(serializers.ModelSerializer):
             "entries",
         ]
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Renumber so gaps left by deleted entries match the localization ids
+        for idx, entry in enumerate(data["entries"]):
+            entry["order"] = idx + 1
+        return data
+
 
 class RasterSerializer(serializers.ModelSerializer):
     tags = serializers.SlugRelatedField(many=True, read_only=True, slug_field="key")
