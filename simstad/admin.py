@@ -4,7 +4,7 @@ from django.utils.html import format_html
 from django.shortcuts import render, redirect
 from django.urls import path, reverse
 from django.utils import timezone
-from django.db import models
+from django.db import models, transaction
 from django.forms.widgets import Textarea
 from .models import (
     City,
@@ -565,25 +565,29 @@ class LegendAdmin(SortableAdminBase, TranslationAdmin):
                 json_data = form.cleaned_data["json_data"]
                 try:
                     entries = json.loads(json_data)
-                    legend = Legend.objects.create(key=key)
-
-                    for idx, entry in enumerate(entries):
-                        # Find symbol in database, if possible
-                        type_name = entry.get("type", "rectangle")
-                        symbol = LegendSymbol.objects.filter(
-                            name__iexact=type_name
-                        ).first()
-                        if symbol is None:
-                            symbol = LegendSymbol.objects.first()
-
-                        LegendEntry.objects.create(
-                            legend=legend,
-                            text_en=entry.get("text", ""),
-                            text_sv=entry.get("text", ""),
-                            color=entry.get("color", "#FFFFFF"),
-                            symbol=symbol,
-                            order=idx + 1,
+                    with transaction.atomic():
+                        legend = Legend.objects.create(
+                            key=key, title_sv=key, title_en=key
                         )
+
+                        for idx, entry in enumerate(entries):
+                            type_name = entry.get("type", "rectangle")
+                            symbol = LegendSymbol.objects.filter(
+                                key__iexact=type_name
+                            ).first()
+                            if symbol is None:
+                                symbol = LegendSymbol.objects.first()
+                            if symbol is None:
+                                raise ValueError("Create a legend symbol before importing entries.")
+
+                            LegendEntry.objects.create(
+                                legend=legend,
+                                text_en=entry.get("text", ""),
+                                text_sv=entry.get("text", ""),
+                                color=entry.get("color", "#FFFFFF"),
+                                symbol=symbol,
+                                order=idx + 1,
+                            )
                     self.message_user(
                         request,
                         f"Legend '{key}' imported with {len(entries)} entries.",
