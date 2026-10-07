@@ -48,6 +48,11 @@ class BulkUploadForm(forms.Form):
         queryset=Tag.objects.all(),
         required=False,
     )
+    notes = forms.CharField(
+        required=True,
+        widget=forms.Textarea(attrs={"rows": 3}),
+        help_text="Describe the rasters. What do they represent? What is the source?",
+    )
 
 
 class LegendJsonImportForm(forms.Form):

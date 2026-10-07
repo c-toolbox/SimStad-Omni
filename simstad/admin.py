@@ -445,6 +445,7 @@ class RasterAdmin(TranslationAdmin):
             if form.is_valid():
                 city = form.cleaned_data["city"]
                 tags = form.cleaned_data["tags"]
+                notes = form.cleaned_data["notes"]
                 images = request.FILES.getlist("images")
 
                 for image in images:
@@ -462,6 +463,7 @@ class RasterAdmin(TranslationAdmin):
                         name_en=base_name.replace("_", " ").title(),
                         name_sv=base_name.replace("_", " ").title(),
                         city=city,
+                        notes=notes,
                         image=image,
                         created_at=timezone.now(),
                         changed_at=timezone.now(),
