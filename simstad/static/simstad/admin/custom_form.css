@@ -1,0 +1,50 @@
+.admin-custom-form .custom-form-field {
+    display: grid;
+    grid-template-columns: 160px minmax(0, 640px);
+    gap: 16px;
+    align-items: start;
+}
+
+.admin-custom-form .aligned .custom-form-field > label {
+    float: none;
+    width: auto;
+    padding: 8px 0;
+    margin: 0;
+}
+
+.admin-custom-form .custom-form-control {
+    min-width: 0;
+}
+
+.admin-custom-form .custom-form-control input:not([type="checkbox"]):not([type="radio"]),
+.admin-custom-form .custom-form-control select,
+.admin-custom-form .custom-form-control textarea {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+}
+
+.admin-custom-form .custom-form-control textarea {
+    resize: vertical;
+}
+
+.admin-custom-form .aligned .custom-form-control .help,
+.admin-custom-form .aligned .custom-form-control .errorlist {
+    margin: 8px 0 0;
+    padding: 0;
+}
+
+.admin-custom-form .aligned .custom-form-control .errorlist {
+    margin: 0 0 8px;
+}
+
+@media (max-width: 767px) {
+    .admin-custom-form .custom-form-field {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+    }
+
+    .admin-custom-form .aligned .custom-form-field > label {
+        padding: 0;
+    }
+}

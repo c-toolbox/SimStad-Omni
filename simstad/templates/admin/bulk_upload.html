@@ -1,17 +1,7 @@
-{% extends "admin/base_site.html" %}
+{% extends "admin/custom_form.html" %}
 
-{% block content %}
-	<div class="module">
-		<form method="post" enctype="multipart/form-data" class="admin-form">
-			{% csrf_token %}
-			{{ form.as_p }}
-			<div class="form-row">
-				<input type="submit" value="Upload" class="default">
-			</div>
-		</form>
-		
-		<p style="margin-top: 16px;">
-			<strong>Warning:</strong> Uploading multiple files can take a long time because the database converts the images to multiple formats. Upload limit: 1 GB.
-		</p>
-	</div>
+{% block after_form %}
+	<p>
+		<strong>Warning:</strong> Uploading multiple files can take a long time because the database converts the images to multiple formats. Upload limit: 1 GB.
+	</p>
 {% endblock %}

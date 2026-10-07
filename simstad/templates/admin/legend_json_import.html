@@ -1,15 +1,9 @@
-{% extends "admin/base_site.html" %}
+{% extends "admin/custom_form.html" %}
 
-{% block content %}
+{% block submit_label %}Import{% endblock %}
+
+{% block after_form %}
 	<div class="module">
-		<form method="post" enctype="multipart/form-data" class="admin-form">
-			{% csrf_token %}
-			{{ form.as_p }}
-			<div class="form-row">
-				<input type="submit" value="Upload" class="default">
-			</div>
-		</form>
-		
 		<p style="margin-top: 16px;">JSON Format:</p>
 		<pre><code>
 [

@@ -1,0 +1,39 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+	{{ block.super }}
+	<link rel="stylesheet" href="{% static 'admin/css/forms.css' %}">
+	<link rel="stylesheet" href="{% static 'simstad/admin/custom_form.css' %}">
+{% endblock %}
+
+{% block content %}
+	<form method="post" enctype="multipart/form-data" class="admin-custom-form">
+		{% csrf_token %}
+		{{ form.non_field_errors }}
+		{% for hidden in form.hidden_fields %}
+			{{ hidden.errors }}
+			{{ hidden }}
+		{% endfor %}
+		<fieldset class="module aligned">
+			{% for field in form.visible_fields %}
+				<div class="form-row{% if field.errors %} errors{% endif %}">
+					<div class="custom-form-field">
+						<label for="{{ field.id_for_label }}"{% if field.field.required %} class="required"{% endif %}>{{ field.label }}:</label>
+						<div class="custom-form-control">
+							{{ field.errors }}
+							{{ field }}
+							{% if field.help_text %}
+								<div class="help" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</div>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+			{% endfor %}
+		</fieldset>
+		<div class="submit-row">
+			<input type="submit" value="{% block submit_label %}Upload{% endblock %}" class="default">
+		</div>
+	</form>
+	{% block after_form %}{% endblock %}
+{% endblock %}
